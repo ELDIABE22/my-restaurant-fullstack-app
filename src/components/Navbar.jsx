@@ -15,11 +15,13 @@ import {
 import { signOut, useSession } from "next-auth/react";
 import { usePathname } from "next/navigation";
 import CarritoIcon from "./icons/CarritoIcon";
+import { useOrder } from "@/context/OrderContext";
 
 export default function App() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { status } = useSession();
   const pathname = usePathname();
+  const { cart } = useOrder();
 
   return (
     <Navbar
@@ -114,7 +116,7 @@ export default function App() {
           <NavbarItem className="relative sm:border-l-1 sm:border-gray-700 sm:pl-4 sm:ml-2 cursor-pointer">
             <CarritoIcon />
             <div className="absolute h-4 w-4 rounded-full sm:-top-1 sm:left-7 -top-1 left-4 font-semibold bg-orange-peel flex items-center justify-center text-sm">
-              9
+              {cart.length}
             </div>
           </NavbarItem>
         </NavbarContent>

@@ -5,15 +5,21 @@ import {
   ModalBody,
   ModalFooter,
   Button,
+  Image,
 } from "@nextui-org/react";
 import { useState } from "react";
 import MinusIcon from "./icons/MinusIcon";
 import PlusIcon from "./icons/PlusIcon";
 import CleanIcon from "./icons/CleanIcon";
 import AccordionMenu from "./AccordionMenu";
+import { useOrder } from "@/context/OrderContext";
 
-const ModalMenu = ({ isOpen, onClose }) => {
+const ModalMenu = ({ isOpen, onClose, modalDataItem }) => {
+  const [selectedBoxElements, setSelectedBoxElements] = useState([]);
   const [amount, setAmount] = useState(1);
+
+  const { orders } = useOrder();
+  console.log(orders);
 
   return (
     <Modal
@@ -32,21 +38,36 @@ const ModalMenu = ({ isOpen, onClose }) => {
         {(onClose) => (
           <>
             <ModalHeader className="flex flex-col gap-1 text-center text-orange-peel">
-              Pizza Jamón y Queso
+              {modalDataItem.name}
             </ModalHeader>
             <ModalBody>
               <div className="md:flex md:gap-3 md:h-screen md:overflow-hidden md:justify-around">
                 {/* IMAGEN COMIDA ITEM */}
-                <div className="flex justify-center md:w-2/4">
-                  <div className="bg-pizza bg-cover bg-no-repeat bg-center min-h-[245px] min-w-[245px] max-h-[345px] max-w-[345px]" />
+                <div className="flex justify-center items-center md:w-2/4">
+                  <Image
+                    shadow="sm"
+                    radius="lg"
+                    width="100%"
+                    alt={modalDataItem.name}
+                    className="w-full object-cover min-h-[245px] max-h-[345px] max-w-[345px]"
+                    src={modalDataItem.image.url}
+                  />
                 </div>
                 <div className="flex flex-col w-full md:w-2/4">
-                  <div className="py-3">$ 22.000</div>
+                  <div className="py-3">
+                    $ {modalDataItem.price.toLocaleString()}
+                  </div>
                   <div className="text-xs pb-3">
-                    Pizza de jamón y queso tamaño grande
+                    {modalDataItem.description}
                   </div>
                   <div className="overflow-auto">
-                    <AccordionMenu />
+                    {modalDataItem.itemBox.length > 0 && (
+                      <AccordionMenu
+                        boxData={modalDataItem.itemBox}
+                        selectedBoxElements={selectedBoxElements}
+                        setSelectedBoxElements={setSelectedBoxElements}
+                      />
+                    )}
                   </div>
                 </div>
               </div>
@@ -66,7 +87,7 @@ const ModalMenu = ({ isOpen, onClose }) => {
                 <PlusIcon setAmount={setAmount} amount={amount} />
               </div>
               <Button color="success" className="text-white" onPress={onClose}>
-                Agregar al carrito
+                Agregar al carrito {modalDataItem.price}
               </Button>
             </ModalFooter>
           </>

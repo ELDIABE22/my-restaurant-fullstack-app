@@ -8,11 +8,13 @@ export async function POST(req) {
 
         const { name } = await req.json();
 
-        const category = await Category.findOne({ name });
+        const uppercaseName = name.toUpperCase();
+
+        const category = await Category.findOne({ name: uppercaseName });
 
         if (category) return NextResponse.json({ message: "La categoría ya existe!" });
 
-        const newCategory = new Category({ name });
+        const newCategory = new Category({ name: uppercaseName });
 
         await newCategory.save();
 
@@ -57,11 +59,13 @@ export async function PUT(req) {
 
         const { id, name } = await req.json();
 
-        const existingName = await Category.findOne({ name });
+        const uppercaseName = name.toUpperCase();
+
+        const existingName = await Category.findOne({ name: uppercaseName });
 
         if (existingName) return NextResponse.json({ message: "La categoría ya existe!" })
 
-        await Category.findByIdAndUpdate(id, { name });
+        await Category.findByIdAndUpdate(id, { name: uppercaseName });
 
         return NextResponse.json({ message: 'Categoría actualizada' });
     } catch (error) {

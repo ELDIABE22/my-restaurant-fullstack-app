@@ -1,11 +1,10 @@
-const PlusIcon = ({ setAmount, amount }) => {
+const PlusIcon = () => {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
       viewBox="0 0 24 24"
       fill="currentColor"
       className="w-5 h-5 text-gray-400 cursor-pointer"
-      onClick={() => setAmount(amount + 1)}
     >
       <path
         fillRule="evenodd"

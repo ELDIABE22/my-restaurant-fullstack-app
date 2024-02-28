@@ -140,6 +140,7 @@ const Categories = () => {
             onPress={() => {
               setEditedCategory(null);
               setName("");
+              setError(null);
             }}
           >
             Cancelar
@@ -155,6 +156,7 @@ const Categories = () => {
         setEditedCategory={setEditedCategory}
         getCategory={getCategory}
         loadingCategory={loadingCategory}
+        setError={setError}
       />
     </div>
   );

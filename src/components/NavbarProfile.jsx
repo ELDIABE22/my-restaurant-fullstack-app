@@ -51,7 +51,7 @@ const NavbarProfile = () => {
               as={Link}
               href="/profile/users"
               className={
-                pathname === "/profile/users"
+                pathname.includes("/users")
                   ? "bg-orange-peel font-semibold"
                   : "hover:bg-orange-peel font-normal"
               }

@@ -1,14 +1,10 @@
-const CleanIcon = ({ setAmount, onClose }) => {
+const CleanIcon = () => {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
       viewBox="0 0 24 24"
       fill="currentColor"
       className="w-5 h-5 text-gray-500 cursor-pointer"
-      onClick={() => {
-        setAmount(1);
-        onClose();
-      }}
     >
       <path
         fillRule="evenodd"

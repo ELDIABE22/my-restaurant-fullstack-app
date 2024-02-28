@@ -14,23 +14,31 @@ export async function PUT(req) {
 
         const validateUser = await User.findOne({ telefono: dataToUpdate.telefono });
 
-        if (validateUser) return NextResponse.json({ message: "El teléfono ya existe!" });
+        if (validateUser) {
+            const validatePhone = validateUser._id == user._id;
 
-        await User.updateOne({ correo: user.correo }, dataToUpdate, { new: true });
+            if (!validatePhone) return NextResponse.json({ message: "El teléfono ya existe!" });
+        }
+
+        await User.updateOne({ correo: user.correo }, dataToUpdate);
 
         return NextResponse.json({ message: "Usuario actualizado exitosamente" });
 
     } catch (error) {
-        return NextResponse.json({ message: 'Error al actualizar el usuario! ' + error });
+        return NextResponse.json({ message: "Error, inténtalo más tarde", error: error.message });
     }
 }
 
 export async function GET() {
-    await connectDB();
+    try {
+        await connectDB();
 
-    const { user } = await getServerSession(authOptions);
+        const { user } = await getServerSession(authOptions);
 
-    const dataUser = await User.findOne({ correo: user.correo });
+        const dataUser = await User.findOne({ correo: user.correo });
 
-    return NextResponse.json(dataUser);
+        return NextResponse.json(dataUser);
+    } catch (error) {
+        return NextResponse.json({ message: "Error, inténtalo más tarde", error: error.message });
+    }
 }

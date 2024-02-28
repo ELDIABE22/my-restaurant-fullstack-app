@@ -7,6 +7,6 @@ const CategorySchema = new Schema({
         unique: true,
         trim: true,
     }
-})
+}, { timestamps: true })
 
 export default models.Category || model('Category', CategorySchema);
