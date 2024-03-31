@@ -17,28 +17,36 @@ export const useOrder = () => {
 export const OrderProvider = ({ children }) => {
   const ls = typeof window !== "undefined" ? window.localStorage : null;
 
-  const [cart, setCart] = useState(
-    JSON?.parse(ls?.getItem("cart")) || {
-      info: {
-        id: "",
-        name: "",
-        phone: "",
-        address: "",
-        city: "",
-        additionalDetail: "",
-      },
-      products: [],
-      deliveryMethod: {
-        method: "Restaurante",
-      },
-      paymentMethod: null,
-      productCost: 0,
-      discount: null,
-      costOfShipping: 3500,
-      tip: 0,
-      total: 0,
+  let initialCartState = {
+    info: {
+      id: "",
+      name: "",
+      phone: "",
+      address: "",
+      city: "",
+      additionalDetail: "",
+    },
+    products: [],
+    deliveryMethod: {
+      method: "Restaurante",
+    },
+    paymentMethod: null,
+    productCost: 0,
+    discount: null,
+    costOfShipping: 3500,
+    tip: 0,
+    total: 0,
+  };
+
+  if (ls && ls.getItem("cart")) {
+    try {
+      initialCartState = JSON.parse(ls.getItem("cart")) || initialCartState;
+    } catch (error) {
+      console.error("Error al analizar JSON del carrito:", error);
     }
-  );
+  }
+
+  const [cart, setCart] = useState(initialCartState);
 
   useEffect(() => {
     if (ls && ls?.getItem("cart")) {
