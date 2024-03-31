@@ -15,7 +15,7 @@ import { useOrder } from "@/context/OrderContext";
 import { deliveryMethodSchema } from "@/utils/validationSchema";
 import { useSession } from "next-auth/react";
 import toast from "react-hot-toast";
-import { useRouter } from "next/navigation";
+import { useRouter } from "next/router";
 
 const CardDeliveryMethod = () => {
   const { cart, setCart, saveCartProductsToLocalStorage } = useOrder();

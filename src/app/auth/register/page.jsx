@@ -4,7 +4,7 @@ import Link from "next/link";
 import FormRegister from "@/components/FormRegister";
 import { useSession } from "next-auth/react";
 import { Spinner } from "@nextui-org/react";
-import { useRouter } from "next/navigation";
+import { useRouter } from "next/router";
 
 const Registro = () => {
   const { status } = useSession();

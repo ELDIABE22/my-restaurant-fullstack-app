@@ -5,7 +5,7 @@ import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
 import axios from "axios";
 import CardOrderKitchen from "@/components/CardOrderKitchen";
-import { useRouter } from "next/navigation";
+import { useRouter } from "next/router";
 
 const KitchenPage = () => {
   const { data: session, status } = useSession();

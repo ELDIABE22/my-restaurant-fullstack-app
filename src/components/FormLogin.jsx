@@ -3,7 +3,8 @@ import { Input } from "@nextui-org/react";
 import { signIn } from "next-auth/react";
 import { useState } from "react";
 import { MailIcon } from "./icons/MailIcon";
-import { useRouter } from "next/navigation";
+import { useRouter } from "next/router";
+
 import { GoogleIcon } from "./icons/GoogleIcon";
 import { loginSchema } from "@/utils/validationSchema";
 import { EyeFilledIcon } from "./icons/EyeFilledIcon";

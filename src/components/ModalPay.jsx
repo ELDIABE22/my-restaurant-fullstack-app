@@ -15,7 +15,7 @@ import { useState } from "react";
 import { useOrder } from "@/context/OrderContext";
 import axios from "axios";
 import toast from "react-hot-toast";
-import { useRouter } from "next/navigation";
+import { useRouter } from "next/router";
 
 const ModalPay = ({ isOpen, onOpenChange }) => {
   const { cart, setCart, saveCartProductsToLocalStorage } = useOrder();

@@ -14,7 +14,7 @@ import { resetPasswordSchema } from "@/utils/validationSchema";
 
 import axios from "axios";
 import toast from "react-hot-toast";
-import { useRouter } from "next/navigation";
+import { useRouter } from "next/router";
 
 const CardResetPassword = ({ params }) => {
   const [newPassword, setNewPassword] = useState("");

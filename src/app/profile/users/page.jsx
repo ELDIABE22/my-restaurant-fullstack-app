@@ -24,7 +24,8 @@ import {
   Link,
 } from "@nextui-org/react";
 import { useSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
+import { useRouter } from "next/router";
+
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 const UserPage = () => {
