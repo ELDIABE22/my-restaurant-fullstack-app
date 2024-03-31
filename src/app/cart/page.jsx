@@ -15,7 +15,7 @@ import CardDeliveryMethod from "@/components/CardDeliveryMethod";
 import ModalPay from "@/components/ModalPay";
 import { useRouter } from "next/navigation";
 
-const API_KEY = "AIzaSyCd7rDmSIZcV_OrXx4mNp5AN5MWI8j0m5k";
+const API_KEY = process.env.MAPS_API_KEY;
 
 // Coordernadas del restaurante
 const center = {
