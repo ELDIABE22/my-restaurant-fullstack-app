@@ -1,0 +1,38 @@
+{
+  "name": "my-restaurant-fullstack-app",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "@nextui-org/react": "^2.2.9",
+    "@react-google-maps/api": "^2.19.3",
+    "axios": "^1.6.5",
+    "bcrypt": "^5.1.1",
+    "cloudinary": "^2.0.1",
+    "dotenv": "^16.3.1",
+    "framer-motion": "^10.17.12",
+    "haversine": "^1.1.1",
+    "mongoose": "^8.0.3",
+    "next": "^14.0.4",
+    "next-auth": "^4.24.5",
+    "nodemailer": "^6.9.13",
+    "react": "^18",
+    "react-dom": "^18",
+    "react-hot-toast": "^2.4.1",
+    "stripe": "^14.22.0",
+    "uuid": "^9.0.1",
+    "zod": "^3.22.4"
+  },
+  "devDependencies": {
+    "autoprefixer": "^10.0.1",
+    "eslint": "^8",
+    "eslint-config-next": "14.0.4",
+    "postcss": "^8",
+    "tailwindcss": "^3.3.0"
+  }
+}
