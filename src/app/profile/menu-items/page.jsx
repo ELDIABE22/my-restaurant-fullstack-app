@@ -7,7 +7,7 @@ import { Button, Link, Spinner } from "@nextui-org/react";
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { useSession } from "next-auth/react";
-import { useRouter } from "next/router";
+import { useRouter } from "next/navigation";
 
 const menuItems = () => {
   const [items, setItems] = useState([]);

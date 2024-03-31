@@ -13,7 +13,7 @@ import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import CardDeliveryMethod from "@/components/CardDeliveryMethod";
 import ModalPay from "@/components/ModalPay";
-import { useRouter } from "next/router";
+import { useRouter } from "next/navigation";
 
 const API_KEY = process.env.MAPS_API_KEY;
 

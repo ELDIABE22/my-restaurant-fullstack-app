@@ -17,7 +17,7 @@ import {
 import axios from "axios";
 import toast from "react-hot-toast";
 import CardImageMenuItem from "@/components/CardImageMenuItem";
-import { useRouter } from "next/router";
+import { useRouter } from "next/navigation";
 
 import ModalConfirmDeleteMenuItem from "@/components/ModalConfirmDeleteMenuItem";
 
