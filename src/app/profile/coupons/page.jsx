@@ -7,6 +7,7 @@ import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import axios from "axios";
 import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
 
 const CouponsPage = () => {
   const [code, setCode] = useState("");
@@ -18,6 +19,8 @@ const CouponsPage = () => {
   const [error, setError] = useState(null);
 
   const { data: session, status } = useSession();
+
+  const router = useRouter();
 
   // Función para crear un cúpon y guardarlo en la base de datos
   async function handleSubmit(e) {
@@ -74,7 +77,7 @@ const CouponsPage = () => {
   }, []);
 
   if (session?.user.admin === false) {
-    return (window.location.href = "/");
+    return router.push("/");
   }
 
   if (loadingCoupons)

@@ -28,6 +28,7 @@ import {
 } from "@nextui-org/react";
 import axios from "axios";
 import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import toast from "react-hot-toast";
 
@@ -54,6 +55,8 @@ const ProfileOrdersPage = () => {
   // Estado para abrir y cerrar ModañlUpdateOrderStatus
   const [openModalUpdateOrderStatus, setOpenModalUpdateOrderStatus] =
     useState(false);
+
+  const router = useRouter();
 
   // Función para consultar los pedidos
   async function getOrderAndUsers() {
@@ -447,7 +450,7 @@ const ProfileOrdersPage = () => {
   }, [page, pages]);
 
   if (session?.user.admin === false) {
-    return (window.location.href = "/");
+    return router.push("/");
   }
 
   return (

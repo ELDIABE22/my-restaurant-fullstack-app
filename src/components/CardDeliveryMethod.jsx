@@ -15,6 +15,7 @@ import { useOrder } from "@/context/OrderContext";
 import { deliveryMethodSchema } from "@/utils/validationSchema";
 import { useSession } from "next-auth/react";
 import toast from "react-hot-toast";
+import { useRouter } from "next/navigation";
 
 const CardDeliveryMethod = () => {
   const { cart, setCart, saveCartProductsToLocalStorage } = useOrder();
@@ -31,6 +32,8 @@ const CardDeliveryMethod = () => {
   const [saveTableNumber, setSaveTableNumber] = useState(false);
 
   const [error, setError] = useState(null);
+
+  const router = useRouter();
 
   // Función para actualizar número de mesa
   function handleSaveTableNumber() {
@@ -87,7 +90,7 @@ const CardDeliveryMethod = () => {
         }
 
         setError(null);
-        window.location.reload();
+        router.reload();
       } else if (status === "unauthenticated") {
         toast.error(
           "¡Debes iniciar sesión para realizar un pedido a domicilio!",
@@ -114,7 +117,7 @@ const CardDeliveryMethod = () => {
       }
 
       setError(null);
-      window.location.reload();
+      router.reload();
     }
   };
 

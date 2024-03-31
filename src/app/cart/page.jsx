@@ -13,6 +13,7 @@ import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import CardDeliveryMethod from "@/components/CardDeliveryMethod";
 import ModalPay from "@/components/ModalPay";
+import { useRouter } from "next/navigation";
 
 const API_KEY = "AIzaSyCd7rDmSIZcV_OrXx4mNp5AN5MWI8j0m5k";
 
@@ -34,6 +35,8 @@ const CartPage = () => {
 
   const [destinationCoords, setDestinationCoords] = useState(null);
   const [distance, setDistance] = useState(null);
+
+  const router = useRouter();
 
   // Función para obtener la distancia entre la ubicación del restaurante y la dirección del cliente
   const getDistance = async () => {
@@ -244,7 +247,7 @@ const CartPage = () => {
   }, [cart.products, cart.costOfShipping, shippingCost]);
 
   if (cart.products?.length <= 0) {
-    return (window.location.href = "/");
+    return router.push("/");
   }
 
   return (

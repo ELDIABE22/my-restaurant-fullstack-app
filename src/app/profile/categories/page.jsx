@@ -7,6 +7,7 @@ import CategoryTable from "@/components/CategoryTable";
 import toast from "react-hot-toast";
 import axios from "axios";
 import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
 
 const Categories = () => {
   const [name, setName] = useState("");
@@ -18,6 +19,8 @@ const Categories = () => {
   const [loadingCategory, setLoadingCategory] = useState(true);
 
   const { data: session, status } = useSession();
+
+  const router = useRouter();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -98,7 +101,7 @@ const Categories = () => {
   }, []);
 
   if (session?.user.admin === false) {
-    return (window.location.href = "/");
+    return router.push("/");
   }
 
   return (

@@ -14,6 +14,7 @@ import { resetPasswordSchema } from "@/utils/validationSchema";
 
 import axios from "axios";
 import toast from "react-hot-toast";
+import { useRouter } from "next/navigation";
 
 const CardResetPassword = ({ params }) => {
   const [newPassword, setNewPassword] = useState("");
@@ -25,6 +26,8 @@ const CardResetPassword = ({ params }) => {
     useState(false);
 
   const [isVisible, setIsVisible] = useState(false);
+
+  const router = useRouter();
 
   async function handleUpdate() {
     setUpdateNewPasswordLoading(true);
@@ -53,7 +56,7 @@ const CardResetPassword = ({ params }) => {
 
       if (message === "Tu contraseña ha sido restablecida con éxito.") {
         toast.success(message);
-        window.location.href = "/auth/login";
+        router.push("/auth/login");
       } else {
         toast.error(message);
       }

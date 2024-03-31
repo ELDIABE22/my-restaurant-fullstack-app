@@ -5,14 +5,17 @@ import FormLogin from "@/components/FormLogin";
 import { useSession } from "next-auth/react";
 import { Spinner, useDisclosure } from "@nextui-org/react";
 import ModalForgotPassword from "@/components/ModalForgotPassword";
+import { useRouter } from "next/navigation";
 
 const IniciarSesion = () => {
   const { status } = useSession();
 
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
 
+  const router = useRouter();
+
   if (status === "authenticated") {
-    return (window.location.href = "/");
+    return router.push("/");
   }
 
   return (

@@ -5,12 +5,15 @@ import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
 import axios from "axios";
 import CardOrderKitchen from "@/components/CardOrderKitchen";
+import { useRouter } from "next/navigation";
 
 const KitchenPage = () => {
   const { data: session, status } = useSession();
 
   const [orders, setOrders] = useState([]);
   const [loanding, setLoanding] = useState(true);
+
+  const router = useRouter();
 
   // Función para consultar las ordenes del usuario registrado
   async function getOrders() {
@@ -42,7 +45,7 @@ const KitchenPage = () => {
   }, [status]);
 
   if (session?.user.admin === false) {
-    return (window.location.href = "/");
+    return router.push("/");
   }
 
   return (

@@ -15,6 +15,7 @@ import { useState } from "react";
 import { useOrder } from "@/context/OrderContext";
 import axios from "axios";
 import toast from "react-hot-toast";
+import { useRouter } from "next/navigation";
 
 const ModalPay = ({ isOpen, onOpenChange }) => {
   const { cart, setCart, saveCartProductsToLocalStorage } = useOrder();
@@ -22,6 +23,8 @@ const ModalPay = ({ isOpen, onOpenChange }) => {
   const [paymentMethod, setPaymentMethod] = useState(
     cart.paymentMethod || null
   );
+
+  const router = useRouter();
 
   async function handlePay(onClose) {
     try {
@@ -46,7 +49,7 @@ const ModalPay = ({ isOpen, onOpenChange }) => {
 
         const url = await promise;
 
-        window.location.href = url;
+        router.push(url);
 
         localStorage.removeItem("cart");
       } else if (paymentMethod === "Efectivo") {
@@ -71,7 +74,7 @@ const ModalPay = ({ isOpen, onOpenChange }) => {
         const message = await promise;
 
         if (message === "Pedido realizado") {
-          window.location.href = "/orders";
+          router.push("/orders");
 
           localStorage.removeItem("cart");
         }

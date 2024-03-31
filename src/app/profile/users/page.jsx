@@ -24,6 +24,7 @@ import {
   Link,
 } from "@nextui-org/react";
 import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 const UserPage = () => {
@@ -34,6 +35,8 @@ const UserPage = () => {
   const [page, setPage] = useState(1);
 
   const { data: session, status } = useSession();
+
+  const router = useRouter();
 
   // Definición de las columnas de encabezado de la tabla, especificando la clave y la etiqueta para cada columna.
   const headerColumns = [
@@ -263,7 +266,7 @@ const UserPage = () => {
   }, [page, pages]);
 
   if (session?.user.admin === false) {
-    return (window.location.href = "/");
+    return router.push("/");
   }
 
   return (
