@@ -246,8 +246,8 @@ const CartPage = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cart.products, cart.costOfShipping, shippingCost]);
 
-  if (cart.products?.length <= 0) {
-    return router.push("/");
+  if (typeof window !== "undefined" && cart.products?.length <= 0) {
+    router.push("/");
   }
 
   return (
