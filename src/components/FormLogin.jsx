@@ -1,16 +1,13 @@
 import { Button } from "@nextui-org/react";
 import { Input } from "@nextui-org/react";
 import { signIn } from "next-auth/react";
-import { useState } from "react";
 import { MailIcon } from "./icons/MailIcon";
-import { useRouter } from "next/navigation";
-
 import { GoogleIcon } from "./icons/GoogleIcon";
 import { loginSchema } from "@/utils/validationSchema";
 import { EyeFilledIcon } from "./icons/EyeFilledIcon";
 import { EyeSlashFilledIcon } from "./icons/EyeSlashFilledIcon";
 import toast from "react-hot-toast";
-import Link from "next/link";
+import { useState } from "react";
 
 const FormLogin = ({ onOpen }) => {
   const [correo, setCorreo] = useState("");
@@ -20,8 +17,6 @@ const FormLogin = ({ onOpen }) => {
   const [isVisible, setIsVisible] = useState(false);
 
   const toggleVisibility = () => setIsVisible(!isVisible);
-
-  const router = useRouter();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -46,12 +41,13 @@ const FormLogin = ({ onOpen }) => {
 
       if (res.ok) {
         toast.success("Sesión iniciada");
-        router.push("/menu");
         localStorage.removeItem("cart");
-        setSesionLoading(false);
-      } else {
-        setSesionLoading(false);
+        if (typeof window !== "undefined") {
+          window.location.href = "/menu";
+        }
       }
+
+      setSesionLoading(false);
     } catch (error) {
       const errors = error?.errors?.map((error) => error.message);
       setError(errors);
@@ -102,7 +98,7 @@ const FormLogin = ({ onOpen }) => {
             }
           />
         </div>
-        <div>
+        <div className="flex">
           <p
             onClick={onOpen}
             className="text-orange-peel font-bold text-sm cursor-pointer "

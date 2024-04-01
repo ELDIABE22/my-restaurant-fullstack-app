@@ -95,6 +95,8 @@ const ModalPay = ({ isOpen, onOpenChange }) => {
       };
 
       saveCartProductsToLocalStorage(updatePaymentMethod);
+
+      return updatePaymentMethod;
     });
   };
 

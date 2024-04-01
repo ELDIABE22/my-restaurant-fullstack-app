@@ -15,6 +15,7 @@ import {
 } from "@nextui-org/react";
 import axios from "axios";
 import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 
 const OrderPage = () => {
@@ -25,6 +26,8 @@ const OrderPage = () => {
 
   const [page, setPage] = useState(1);
   const [statusFilter, setStatusFilter] = useState(["Pendiente", "En camino"]);
+
+  const router = useRouter();
 
   // Opciones de estado disponibles para el filtro, representando el estado del pedido.
   const statusOptions = [
@@ -81,11 +84,13 @@ const OrderPage = () => {
   // useEffect para ejecutar getOrders()
   useEffect(() => {
     const intervalId = setInterval(() => {
-      if (status === "unauthenticated" || status === "authenticated") {
+      if (status === "authenticated") {
         getOrders();
 
         clearInterval(intervalId);
         return;
+      } else if (status === "unauthenticated") {
+        return router.push("/");
       }
     }, 1000);
 

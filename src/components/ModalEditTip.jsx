@@ -18,7 +18,7 @@ const ModalEditTip = ({
   setCart,
   saveCartProductsToLocalStorage,
 }) => {
-  const [tip, setTip] = useState(cart.tip || "");
+  const [tip, setTip] = useState("");
   const [error, setError] = useState(null);
 
   // Función para editar propina
@@ -82,6 +82,7 @@ const ModalEditTip = ({
       isOpen={isOpen}
       onClose={() => {
         setError(null);
+        setTip("");
       }}
       onOpenChange={onOpenChange}
       placement="top-center"

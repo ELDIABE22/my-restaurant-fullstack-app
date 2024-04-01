@@ -35,7 +35,7 @@ const KitchenPage = () => {
   // useEffect para ejecutar getOrders()
   useEffect(() => {
     const intervalId = setInterval(() => {
-      if (status === "authenticated") {
+      if (status === "authenticated" && session?.user.admin) {
         getOrders();
       }
     }, 1000);
@@ -44,9 +44,12 @@ const KitchenPage = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [status]);
 
-  if (session?.user.admin === false) {
-    return router.push("/");
-  }
+  useEffect(() => {
+    if (status === "unauthenticated" && !session?.user.admin) {
+      return router.push("/");
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [session?.user.admin, status]);
 
   return (
     <section className="container mx-auto m-5 md:px-3">
