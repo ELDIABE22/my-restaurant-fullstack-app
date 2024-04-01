@@ -1,13 +1,14 @@
 "use client";
 
-import CouponsTable from "@/components/CouponsTable";
+import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 import { couponsSchema } from "@/utils/validationSchema";
-import { Button, Input, Spinner } from "@nextui-org/react";
 import { useEffect, useState } from "react";
+import { Button, Input, Spinner } from "@nextui-org/react";
+
 import toast from "react-hot-toast";
 import axios from "axios";
-import { useSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
+import CouponsTable from "@/components/CouponsTable";
 
 const CouponsPage = () => {
   const [code, setCode] = useState("");
@@ -73,12 +74,16 @@ const CouponsPage = () => {
 
   // useEffect para ejecutar la función getCoupons();
   useEffect(() => {
-    getCoupons();
-  }, []);
-
-  if (session?.user.admin === false) {
-    return router.push("/");
-  }
+    if (status === "authenticated") {
+      if (session?.user.admin) {
+        getCoupons();
+      } else {
+        return router.push("/");
+      }
+    } else if (status === "unauthenticated") {
+      return router.push("/");
+    }
+  }, [router, session?.user.admin, status]);
 
   if (loadingCoupons)
     return (

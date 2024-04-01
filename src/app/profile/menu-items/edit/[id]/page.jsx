@@ -1,12 +1,5 @@
-/* eslint-disable react-hooks/exhaustive-deps */
 "use client";
 
-import AccordionMenuItem from "@/components/AccordionMenuItem";
-import CardImageMenuItem from "@/components/CardImageMenuItem";
-import ModalConfirmDeleteMenuItem from "@/components/ModalConfirmDeleteMenuItem";
-import ModalMenuItem from "@/components/ModalMenuItem";
-import ArrowLeftCircle from "@/components/icons/ArrowLeftCircle";
-import { menuItemSchema } from "@/utils/validationSchema";
 import {
   Autocomplete,
   AutocompleteItem,
@@ -17,11 +10,17 @@ import {
   Textarea,
   useDisclosure,
 } from "@nextui-org/react";
-import axios from "axios";
 import { useRouter } from "next/navigation";
-
+import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
+
+import axios from "axios";
 import toast from "react-hot-toast";
+import ModalMenuItem from "@/components/ModalMenuItem";
+import ArrowLeftCircle from "@/components/icons/ArrowLeftCircle";
+import CardImageMenuItem from "@/components/CardImageMenuItem";
+import AccordionMenuItem from "@/components/AccordionMenuItem";
+import ModalConfirmDeleteMenuItem from "@/components/ModalConfirmDeleteMenuItem";
 
 const MenuItemEdit = ({ params }) => {
   const [itemImage, setItemImage] = useState(null);
@@ -42,6 +41,8 @@ const MenuItemEdit = ({ params }) => {
 
   // Estado para MondalConfirmDeleteMenuItem
   const [isModalOpenDelete, setIsModalOpenDelete] = useState(false);
+
+  const { data: session, status } = useSession();
 
   const { onOpenChange } = useDisclosure();
 
@@ -162,32 +163,44 @@ const MenuItemEdit = ({ params }) => {
 
   // useEffect para traer las categorias y datos del menu-items a actualizar
   useEffect(() => {
-    const fetchProfileItems = fetch("/api/profile/menu-items").then((res) =>
-      res.json()
-    );
-    const fetchCategories = fetch("/api/category").then((res) => res.json());
+    if (status === "authenticated") {
+      if (session?.user.admin) {
+        const fetchProfileItems = fetch("/api/profile/menu-items").then((res) =>
+          res.json()
+        );
+        const fetchCategories = fetch("/api/category").then((res) =>
+          res.json()
+        );
 
-    Promise.all([fetchProfileItems, fetchCategories])
-      .then(([profileItemsData, categoriesData]) => {
-        const item = profileItemsData.find((item) => item._id === params.id);
-        if (item) {
-          setItemImage({ image: item.image, file: null });
-          setItemName(item.name);
-          setItemDescription(item.description);
-          setItemPrice(item.price);
-          setItemCategory(item.category);
-          setBoxItem(item.itemBox);
-        }
+        Promise.all([fetchProfileItems, fetchCategories])
+          .then(([profileItemsData, categoriesData]) => {
+            const item = profileItemsData.find(
+              (item) => item._id === params.id
+            );
+            if (item) {
+              setItemImage({ image: item.image, file: null });
+              setItemName(item.name);
+              setItemDescription(item.description);
+              setItemPrice(item.price);
+              setItemCategory(item.category);
+              setBoxItem(item.itemBox);
+            }
 
-        setCategorys(categoriesData);
-      })
-      .catch((error) => {
-        console.error("Error fetching data:", error);
-      })
-      .finally(() => {
-        setLoading(false);
-      });
-  }, []);
+            setCategorys(categoriesData);
+          })
+          .catch((error) => {
+            console.error("Error fetching data:", error);
+          })
+          .finally(() => {
+            setLoading(false);
+          });
+      } else {
+        return router.push("/");
+      }
+    } else if (status === "unauthenticated") {
+      return router.push("/");
+    }
+  }, [params.id, router, session?.user.admin, status]);
 
   return (
     <div className="flex flex-col justify-center items-center gap-8">

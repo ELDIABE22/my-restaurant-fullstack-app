@@ -1,12 +1,12 @@
 "use client";
 
-import { profileSchema } from "@/utils/validationSchema";
-import { Button, Checkbox, Input, Spinner } from "@nextui-org/react";
-import axios from "axios";
-import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
-
+import { useSession } from "next-auth/react";
+import { profileSchema } from "@/utils/validationSchema";
 import { useEffect, useState } from "react";
+import { Button, Checkbox, Input, Spinner } from "@nextui-org/react";
+
+import axios from "axios";
 import toast from "react-hot-toast";
 
 const UserUpdatePage = ({ params }) => {
@@ -69,20 +69,28 @@ const UserUpdatePage = ({ params }) => {
 
   useEffect(() => {
     if (status === "authenticated") {
-      fetch(`/api/profile/users/update/${params.id}`).then((res) => {
-        res.json().then((data) => {
-          setNombreCompleto(data.nombreCompleto);
-          setCorreo(data.correo);
-          setTelefono(data.telefono);
-          setCiudad(data.ciudad);
-          setDireccion(data.direccion);
-          setAdmin(data.admin);
+      if (session?.user.admin) {
+        fetch(`/api/profile/users/update/${params.id}`).then((res) => {
+          res.json().then((data) => {
+            setNombreCompleto(data.nombreCompleto);
+            setCorreo(data.correo);
+            setTelefono(data.telefono);
+            setCiudad(data.ciudad);
+            setDireccion(data.direccion);
+            setAdmin(data.admin);
 
-          if (res) setLoading(false);
+            if (res) setLoading(false);
+          });
         });
-      });
-    } else if (status === "unauthenticated") setLoading(false);
-  }, [params.id, status]);
+      } else {
+        setLoading(false);
+        return router.push("/");
+      }
+    } else if (status === "unauthenticated") {
+      setLoading(false);
+      return router.push("/");
+    }
+  }, [params.id, router, session?.user.admin, status]);
 
   return (
     <div className="flex justify-center">

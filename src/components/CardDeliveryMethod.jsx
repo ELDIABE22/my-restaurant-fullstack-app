@@ -72,24 +72,40 @@ const CardDeliveryMethod = () => {
       if (status === "authenticated") {
         setDeliveryMethod(value);
         setCart((prevOrder) => {
-          const updateDeliveryMethod = {
-            ...prevOrder,
-            deliveryMethod: {
-              method: value,
-            },
-          };
+          let updateDeliveryMethod = {};
+
+          if (prevOrder.discount) {
+            updateDeliveryMethod = {
+              ...prevOrder,
+              deliveryMethod: {
+                method: value,
+              },
+              total:
+                prevOrder.productCost +
+                prevOrder.costOfShipping +
+                prevOrder.tip -
+                prevOrder.discount,
+            };
+          } else {
+            updateDeliveryMethod = {
+              ...prevOrder,
+              deliveryMethod: {
+                method: value,
+              },
+              total:
+                prevOrder.productCost +
+                prevOrder.costOfShipping +
+                prevOrder.tip,
+            };
+          }
 
           saveCartProductsToLocalStorage(updateDeliveryMethod);
+
+          return updateDeliveryMethod;
         });
 
-        if (value === "Domicilio") {
-          setTableNumber("");
-        }
-
+        setTableNumber("");
         setError(null);
-        if (typeof window !== "undefined") {
-          window.location.reload();
-        }
       } else if (status === "unauthenticated") {
         toast.error(
           "¡Debes iniciar sesión para realizar un pedido a domicilio!",
@@ -98,7 +114,7 @@ const CardDeliveryMethod = () => {
           }
         );
       }
-    } else {
+    } else if (value === "Restaurante") {
       setDeliveryMethod(value);
       setCart((prevOrder) => {
         const updateDeliveryMethod = {
@@ -106,19 +122,15 @@ const CardDeliveryMethod = () => {
           deliveryMethod: {
             method: value,
           },
+          total: prevOrder.productCost + prevOrder.tip,
         };
 
         saveCartProductsToLocalStorage(updateDeliveryMethod);
+
+        return updateDeliveryMethod;
       });
 
-      if (value === "Domicilio") {
-        setTableNumber("");
-      }
-
       setError(null);
-      if (typeof window !== "undefined") {
-        window.location.reload();
-      }
     }
   };
 

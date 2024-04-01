@@ -1,13 +1,14 @@
 /* eslint-disable react-hooks/rules-of-hooks */
 "use client";
 
+import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
+import { useEffect, useState } from "react";
+import { Button, Link, Spinner } from "@nextui-org/react";
+
+import axios from "axios";
 import CardMenuItem from "@/components/CardMenuItem";
 import ArrowRightCircle from "@/components/icons/ArrowRightCircle";
-import { Button, Link, Spinner } from "@nextui-org/react";
-import { useEffect, useState } from "react";
-import axios from "axios";
-import { useSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
 
 const menuItems = () => {
   const [items, setItems] = useState([]);
@@ -52,12 +53,16 @@ const menuItems = () => {
   };
 
   useEffect(() => {
-    fetchDataMenuItems();
-  }, []);
-
-  if (session?.user.admin === false) {
-    return router.push("/");
-  }
+    if (status === "authenticated") {
+      if (session?.user.admin) {
+        fetchDataMenuItems();
+      } else {
+        return router.push("/");
+      }
+    } else if (status === "unauthenticated") {
+      return router.push("/");
+    }
+  }, [router, session?.user.admin, status]);
 
   return (
     <>

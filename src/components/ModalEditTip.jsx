@@ -14,7 +14,6 @@ import { useState } from "react";
 const ModalEditTip = ({
   isOpen,
   onOpenChange,
-  cart,
   setCart,
   saveCartProductsToLocalStorage,
 }) => {

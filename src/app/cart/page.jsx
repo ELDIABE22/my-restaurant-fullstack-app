@@ -15,7 +15,7 @@ import CardDeliveryMethod from "@/components/CardDeliveryMethod";
 import ModalPay from "@/components/ModalPay";
 import { useRouter } from "next/navigation";
 
-const API_KEY = process.env.MAPS_API_KEY;
+const API_KEY = "AIzaSyCd7rDmSIZcV_OrXx4mNp5AN5MWI8j0m5k";
 
 // Coordernadas del restaurante
 const center = {
@@ -270,16 +270,16 @@ const CartPage = () => {
               )}
             </div>
             <div className="w-full flex flex-col">
-              {cart.deliveryMethod?.method !== "Restaurante" && (
-                <LoadScript googleMapsApiKey={API_KEY}>
+              <LoadScript googleMapsApiKey={API_KEY}>
+                {cart.deliveryMethod?.method !== "Restaurante" && (
                   <Maps
                     destinationCoords={destinationCoords}
                     distance={distance}
                     shippingCost={shippingCost}
                     cart={cart}
                   />
-                </LoadScript>
-              )}
+                )}
+              </LoadScript>
               <div
                 className={
                   cart.deliveryMethod?.method !== "Restaurante"

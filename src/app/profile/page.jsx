@@ -1,11 +1,13 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
+import { profileSchema } from "@/utils/validationSchema";
 import { useEffect, useState } from "react";
 import { Button, Checkbox, Input, Spinner } from "@nextui-org/react";
+
 import axios from "axios";
 import toast from "react-hot-toast";
-import { profileSchema } from "@/utils/validationSchema";
 
 const Profile = () => {
   const { data: session, status } = useSession();
@@ -18,6 +20,8 @@ const Profile = () => {
   const [updatingInfo, setUpdatingInfo] = useState(false);
   const [loadingProfile, setLoadingProfile] = useState(true);
   const [error, setError] = useState(null);
+
+  const router = useRouter();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -69,8 +73,9 @@ const Profile = () => {
       });
     } else if (status === "unauthenticated") {
       setLoadingProfile(false);
+      return router.push("/");
     }
-  }, [session, status]);
+  }, [router, session, status]);
 
   return (
     <div className="flex justify-center">

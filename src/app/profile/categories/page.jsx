@@ -1,13 +1,13 @@
 "use client";
 
+import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
 import { Button, Input, Spinner } from "@nextui-org/react";
 import { categorySchema } from "@/utils/validationSchema";
 import { useEffect, useState } from "react";
 import CategoryTable from "@/components/CategoryTable";
 import toast from "react-hot-toast";
 import axios from "axios";
-import { useSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
 
 const Categories = () => {
   const [name, setName] = useState("");
@@ -97,12 +97,16 @@ const Categories = () => {
   };
 
   useEffect(() => {
-    getCategory();
-  }, []);
-
-  if (session?.user.admin === false) {
-    return router.push("/");
-  }
+    if (status === "authenticated") {
+      if (session?.user.admin) {
+        getCategory();
+      } else {
+        return router.push("/");
+      }
+    } else if (status === "unauthenticated") {
+      return router.push("/");
+    }
+  }, [router, session?.user.admin, status]);
 
   return (
     <>

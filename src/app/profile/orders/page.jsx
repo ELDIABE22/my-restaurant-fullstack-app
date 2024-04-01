@@ -1,13 +1,13 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 "use client";
 
-import ModalConfirmOrderDetails from "@/components/ModalConfirmOrderDetails";
-import ModalOrderDetails from "@/components/ModalOrderDetails";
-import ModalUpdateOrderStatus from "@/components/ModalUpdateOrderStatus";
-import { ChevronDownIcon } from "@/components/icons/ChevronDownIcon";
+import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 import { SearchIcon } from "@/components/icons/SearchIcon";
-import { VerticalDotsIcon } from "@/components/icons/VerticalDotsIcon";
 import { capitalize } from "@/utils/capitalize";
+import { ChevronDownIcon } from "@/components/icons/ChevronDownIcon";
+import { VerticalDotsIcon } from "@/components/icons/VerticalDotsIcon";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   Button,
   Chip,
@@ -26,12 +26,12 @@ import {
   TableRow,
   useDisclosure,
 } from "@nextui-org/react";
-import axios from "axios";
-import { useSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import axios from "axios";
 import toast from "react-hot-toast";
+import ModalOrderDetails from "@/components/ModalOrderDetails";
+import ModalUpdateOrderStatus from "@/components/ModalUpdateOrderStatus";
+import ModalConfirmOrderDetails from "@/components/ModalConfirmOrderDetails";
 
 const ProfileOrdersPage = () => {
   const [orders, setOrders] = useState([]);
@@ -450,13 +450,17 @@ const ProfileOrdersPage = () => {
     );
   }, [page, pages]);
 
-  if (session?.user.admin === false) {
-    return router.push("/");
-  }
+  useEffect(() => {
+    if (status === "unauthenticated" && !session?.user.admin) {
+      return router.push("/");
+    } else if (status === "authenticated" && !session?.user.admin) {
+      return router.push("/");
+    }
+  }, [session?.user.admin, status]);
 
   return (
     <>
-      {loading && status === "loading" ? (
+      {loading ? (
         <Spinner
           label="Cargando pedidos..."
           color="warning"

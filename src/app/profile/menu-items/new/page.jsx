@@ -1,8 +1,6 @@
 "use client";
 
-import AccordionMenuItem from "@/components/AccordionMenuItem";
-import ModalMenuItem from "@/components/ModalMenuItem";
-import ArrowLeftCircle from "@/components/icons/ArrowLeftCircle";
+import { useRouter } from "next/navigation";
 import { menuItemSchema } from "@/utils/validationSchema";
 import { useEffect, useState } from "react";
 import {
@@ -14,12 +12,15 @@ import {
   Textarea,
   useDisclosure,
 } from "@nextui-org/react";
+
 import axios from "axios";
 import toast from "react-hot-toast";
+import ModalMenuItem from "@/components/ModalMenuItem";
+import ArrowLeftCircle from "@/components/icons/ArrowLeftCircle";
 import CardImageMenuItem from "@/components/CardImageMenuItem";
-import { useRouter } from "next/navigation";
-
+import AccordionMenuItem from "@/components/AccordionMenuItem";
 import ModalConfirmDeleteMenuItem from "@/components/ModalConfirmDeleteMenuItem";
+import { useSession } from "next-auth/react";
 
 const MenuItemNew = () => {
   const [itemImage, setItemImage] = useState({ file: null });
@@ -35,11 +36,12 @@ const MenuItemNew = () => {
   const [boxItem, setBoxItem] = useState([]);
   const [editBox, setEditBox] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  console.log(error);
 
   // Estado para MondalConfirmDeleteMenuItem
   const [isModalOpenDelete, setIsModalOpenDelete] = useState(false);
   const [modalData, setModalData] = useState(null);
+
+  const { data: session, status } = useSession();
 
   const router = useRouter();
 
@@ -113,14 +115,21 @@ const MenuItemNew = () => {
     setIsModalOpenDelete(false);
   }
 
-  // useEffect para traer las categorias
   useEffect(() => {
-    fetch("/api/category").then((res) => {
-      res.json().then((data) => {
-        setCategorys(data);
-      });
-    });
-  }, []);
+    if (status === "authenticated") {
+      if (session?.user.admin) {
+        fetch("/api/category").then((res) => {
+          res.json().then((data) => {
+            setCategorys(data);
+          });
+        });
+      } else {
+        return router.push("/");
+      }
+    } else if (status === "unauthenticated") {
+      return router.push("/");
+    }
+  }, [router, session?.user.admin, status]);
 
   return (
     <div className="flex flex-col justify-center items-center gap-8">

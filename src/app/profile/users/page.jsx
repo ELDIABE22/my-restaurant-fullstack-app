@@ -1,10 +1,13 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 "use client";
 
-import { ChevronDownIcon } from "@/components/icons/ChevronDownIcon";
+import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 import { SearchIcon } from "@/components/icons/SearchIcon";
-import { VerticalDotsIcon } from "@/components/icons/VerticalDotsIcon";
 import { capitalize } from "@/utils/capitalize";
+import { ChevronDownIcon } from "@/components/icons/ChevronDownIcon";
+import { VerticalDotsIcon } from "@/components/icons/VerticalDotsIcon";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   Table,
   TableHeader,
@@ -23,10 +26,6 @@ import {
   Input,
   Link,
 } from "@nextui-org/react";
-import { useSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
-
-import { useCallback, useEffect, useMemo, useState } from "react";
 
 const UserPage = () => {
   const [users, setUsers] = useState([]);
@@ -103,16 +102,6 @@ const UserPage = () => {
 
   // Calcula el número total de páginas basado en la cantidad de elementos filtrados y el número de filas por página.
   const pages = Math.ceil(filteredItems.length / rowsPerPage);
-
-  // useEffect para consultar los usuarios
-  useEffect(() => {
-    fetch("/api/profile/users").then((res) => {
-      res.json().then((data) => {
-        setUsers(data);
-        setLoading(false);
-      });
-    });
-  }, []);
 
   // useMemo para calcular y memorizar el subconjunto de usuarios que se mostrarán en la página actual.
   const items = useMemo(() => {
@@ -266,9 +255,23 @@ const UserPage = () => {
     );
   }, [page, pages]);
 
-  if (session?.user.admin === false) {
-    return router.push("/");
-  }
+  // useEffect para consultar los usuarios
+  useEffect(() => {
+    if (status === "authenticated") {
+      if (session?.user.admin) {
+        fetch("/api/profile/users").then((res) => {
+          res.json().then((data) => {
+            setUsers(data);
+            setLoading(false);
+          });
+        });
+      } else {
+        return router.push("/");
+      }
+    } else if (status === "unauthenticated") {
+      return router.push("/");
+    }
+  }, [router, session?.user.admin, status]);
 
   return (
     <>

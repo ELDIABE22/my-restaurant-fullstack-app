@@ -10,8 +10,6 @@ import {
 } from "@nextui-org/react";
 import axios from "axios";
 import { useSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
-
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 
@@ -31,8 +29,6 @@ const ModalOrderData = ({
   const [address, setAddress] = useState("");
   const [city, setCity] = useState("");
   const [error, setError] = useState(null);
-
-  const router = useRouter();
 
   // Función para cerrar el modal y actualizar el estado error a null
   const handleCloseModal = () => {
@@ -79,7 +75,9 @@ const ModalOrderData = ({
           dataUser.updatedUser.ciudad !== cart.info.city
         ) {
           updateCosts();
-          router.reload();
+          if (typeof window !== "undefined") {
+            window.location.reload();
+          }
         } else if (dataUser.message === "Usuario actualizado exitosamente") {
           updateCosts();
         }

@@ -83,20 +83,13 @@ const OrderPage = () => {
 
   // useEffect para ejecutar getOrders()
   useEffect(() => {
-    const intervalId = setInterval(() => {
-      if (status === "authenticated") {
-        getOrders();
-
-        clearInterval(intervalId);
-        return;
-      } else if (status === "unauthenticated") {
-        return router.push("/");
-      }
-    }, 1000);
-
-    return () => clearInterval(intervalId);
+    if (status === "authenticated") {
+      getOrders();
+    } else if (status === "unauthenticated") {
+      return router.push("/");
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [status]);
+  }, [router, status]);
 
   return (
     <section className="container mx-auto m-5 md:px-3">
