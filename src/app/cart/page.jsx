@@ -122,9 +122,7 @@ const CartPage = () => {
           additionalDetail: "",
         };
 
-        if (cart.deliveryMethod?.method !== "Restaurante") {
-          getDistance();
-        }
+        getDistance();
       }
 
       if (cart.deliveryMethod?.method !== "Restaurante") {
