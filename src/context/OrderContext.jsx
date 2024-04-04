@@ -73,9 +73,7 @@ export const OrderProvider = ({ children }) => {
       };
 
       ls.setItem("cart", JSON.stringify(updatedOrder));
-
       setCart(updatedOrder);
-
       toast.success("Producto eliminado del carrito");
     }
   }

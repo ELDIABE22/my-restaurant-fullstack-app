@@ -15,8 +15,13 @@ import { useOrder } from "@/context/OrderContext";
 import { deliveryMethodSchema } from "@/utils/validationSchema";
 import { useSession } from "next-auth/react";
 import toast from "react-hot-toast";
+import axios from "axios";
 
-const CardDeliveryMethod = () => {
+const CardDeliveryMethod = ({
+  shippingCost,
+  getDistance,
+  setLoadingDeliveryMethod,
+}) => {
   const { cart, setCart, saveCartProductsToLocalStorage } = useOrder();
 
   const { status } = useSession();
@@ -67,45 +72,97 @@ const CardDeliveryMethod = () => {
     setError(null);
   }
 
-  const handleToggle = (value) => {
+  const handleToggle = async (value) => {
+    let updateDeliveryMethod = {};
+
     if (value === "Domicilio") {
       if (status === "authenticated") {
+        setLoadingDeliveryMethod(true);
         setDeliveryMethod(value);
-        setCart((prevOrder) => {
-          let updateDeliveryMethod = {};
 
-          if (prevOrder.discount) {
-            updateDeliveryMethod = {
-              ...prevOrder,
-              deliveryMethod: {
-                method: value,
-              },
-              total:
-                prevOrder.productCost +
-                prevOrder.costOfShipping +
-                prevOrder.tip -
-                prevOrder.discount,
-            };
+        getDistance();
+
+        if (!cart.discount) {
+          const couponRes = await axios.get("/api/profile/coupon/used");
+          const { data: couponData } = couponRes;
+
+          if (couponData) {
+            setCart((prevOrder) => {
+              updateDeliveryMethod = {
+                ...prevOrder,
+                deliveryMethod: {
+                  method: value,
+                },
+                costOfShipping: shippingCost,
+                discount:
+                  Math.round(
+                    (prevOrder.productCost * couponData.discountPercentage) /
+                      100
+                  ) * 100,
+                tip:
+                  prevOrder.tip ||
+                  Math.round((prevOrder.productCost * 0.2) / 100) * 100,
+                total:
+                  prevOrder.productCost + shippingCost + prevOrder.tip ||
+                  Math.round((prevOrder.productCost * 0.2) / 100) * 100 -
+                    Math.round(
+                      (prevOrder.productCost * couponData.discountPercentage) /
+                        100
+                    ) *
+                      100,
+              };
+
+              return updateDeliveryMethod;
+            });
           } else {
-            updateDeliveryMethod = {
-              ...prevOrder,
-              deliveryMethod: {
-                method: value,
-              },
-              total:
-                prevOrder.productCost +
-                prevOrder.costOfShipping +
-                prevOrder.tip,
-            };
+            setCart((prevOrder) => {
+              updateDeliveryMethod = {
+                ...prevOrder,
+                deliveryMethod: {
+                  method: value,
+                },
+                costOfShipping: shippingCost,
+                discount: null,
+                tip:
+                  prevOrder.tip ||
+                  Math.round((prevOrder.productCost * 0.2) / 100) * 100,
+                total:
+                  prevOrder.productCost + shippingCost + prevOrder.tip ||
+                  Math.round((prevOrder.productCost * 0.2) / 100) * 100,
+              };
+
+              return updateDeliveryMethod;
+            });
           }
 
-          saveCartProductsToLocalStorage(updateDeliveryMethod);
+          if (couponRes.status) {
+            setLoadingDeliveryMethod(false);
+          }
+        } else {
+          setCart((prevOrder) => {
+            updateDeliveryMethod = {
+              ...prevOrder,
+              deliveryMethod: {
+                method: value,
+              },
+              costOfShipping: shippingCost,
+              discount: prevOrder.discount,
+              tip:
+                prevOrder.tip ||
+                Math.round((prevOrder.productCost * 0.2) / 100) * 100,
+              total:
+                prevOrder.productCost + shippingCost + prevOrder.tip ||
+                Math.round((prevOrder.productCost * 0.2) / 100) * 100 -
+                  prevOrder.discount,
+            };
 
-          return updateDeliveryMethod;
-        });
+            return updateDeliveryMethod;
+          });
+        }
+
+        saveCartProductsToLocalStorage(updateDeliveryMethod);
 
         setTableNumber("");
-        setError(null);
       } else if (status === "unauthenticated") {
         toast.error(
           "¡Debes iniciar sesión para realizar un pedido a domicilio!",
@@ -115,9 +172,11 @@ const CardDeliveryMethod = () => {
         );
       }
     } else if (value === "Restaurante") {
+      setLoadingDeliveryMethod(true);
       setDeliveryMethod(value);
+
       setCart((prevOrder) => {
-        const updateDeliveryMethod = {
+        updateDeliveryMethod = {
           ...prevOrder,
           deliveryMethod: {
             method: value,
@@ -130,8 +189,10 @@ const CardDeliveryMethod = () => {
         return updateDeliveryMethod;
       });
 
-      setError(null);
+      setLoadingDeliveryMethod(false);
     }
+
+    setError(null);
   };
 
   return (
@@ -216,13 +277,6 @@ const CardDeliveryMethod = () => {
           </Button>
         </div>
       )}
-      <Divider />
-      <div className="p-3">
-        <p className="text-[10px] text-gray-500">
-          ! La página se actualizará automáticamente después de cambiar el
-          método.
-        </p>
-      </div>
     </Card>
   );
 };

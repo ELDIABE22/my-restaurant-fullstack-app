@@ -153,7 +153,9 @@ const ModalOrderDetails = ({ isOpen, onOpenChange, order, setOpenModal }) => {
                         disabledKeys={disabledKeys}
                       >
                         <Tab key="pendiente" title="Pendiente" />
-                        <Tab key="enCamino" title="En camino" />
+                        {order.deliveryMethod.method === "Domicilio" && (
+                          <Tab key="enCamino" title="En camino" />
+                        )}
                         <Tab key="entregado" title="Entregado" />
                       </Tabs>
                     </div>

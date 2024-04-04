@@ -73,7 +73,7 @@ export const menuItemSchema = z.object({
 })
 
 export const couponsSchema = z.object({
-    code: z.string().min(1, { message: { code: 'Es requerido' } }).refine(value => /^[a-zA-ZñÑ\s]+$/.test(value), { message: { code: 'El nombre no es válido' } }),
+    code: z.string().min(1, { message: { code: 'Es requerido' } }),
     discountPercentage: z.string()
         .min(1, { message: { discountPercentage: 'Es requerido' } })
         .refine((value) => {

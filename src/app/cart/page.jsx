@@ -33,6 +33,8 @@ const CartPage = () => {
   const [shippingCost, setShippingCost] = useState(null);
   const [loadingCartData, setLoadingCartData] = useState(true);
 
+  const [loadingDeliveryMethod, setLoadingDeliveryMethod] = useState(false);
+
   const [destinationCoords, setDestinationCoords] = useState(null);
   const [distance, setDistance] = useState(null);
 
@@ -149,11 +151,11 @@ const CartPage = () => {
                 Math.round(
                   (productCost * couponData.discountPercentage) / 100
                 ) * 100,
-              tip: Math.round((productCost * 0.05) / 100) * 100,
+              tip: Math.round((productCost * 0.2) / 100) * 100,
               total:
                 productCost +
                 shippingCost +
-                Math.round((productCost * 0.05) / 100) * 100 -
+                Math.round((productCost * 0.2) / 100) * 100 -
                 Math.round(
                   (productCost * couponData.discountPercentage) / 100
                 ) *
@@ -186,11 +188,11 @@ const CartPage = () => {
               productCost,
               costOfShipping: shippingCost,
               discount: null,
-              tip: Math.round((productCost * 0.05) / 100) * 100,
+              tip: Math.round((productCost * 0.2) / 100) * 100,
               total:
                 productCost +
                 shippingCost +
-                Math.round((productCost * 0.05) / 100) * 100,
+                Math.round((productCost * 0.2) / 100) * 100,
             };
 
             saveCartProductsToLocalStorage(updateOrder);
@@ -219,8 +221,8 @@ const CartPage = () => {
               ...dataInfo,
             },
             productCost,
-            tip: Math.round((productCost * 0.05) / 100) * 100,
-            total: productCost + Math.round((productCost * 0.05) / 100) * 100,
+            tip: Math.round((productCost * 0.2) / 100) * 100,
+            total: productCost + Math.round((productCost * 0.2) / 100) * 100,
           };
 
           saveCartProductsToLocalStorage(updatedOrder);
@@ -259,15 +261,19 @@ const CartPage = () => {
           />
         ) : (
           <div className="w-full flex flex-col lg:flex-row lg:gap-5 justify-center box-content">
-            <div className="flex flex-col gap-4 w-full lg:max-w-[635px] box-content">
-              <CardDeliveryMethod />
+            <div className="flex flex-col gap-4 w-full box-content">
+              <CardDeliveryMethod
+                shippingCost={shippingCost}
+                getDistance={getDistance}
+                setLoadingDeliveryMethod={setLoadingDeliveryMethod}
+              />
               <CardOrderData updateCosts={updateCosts} />
               <AccordionOrder />
               {cart.deliveryMethod?.method !== "Restaurante" && (
                 <CardCupon updateCosts={updateCosts} />
               )}
             </div>
-            <div className="w-full flex flex-col">
+            <div className="w-full flex flex-col items-center">
               <LoadScript googleMapsApiKey={API_KEY}>
                 {cart.deliveryMethod?.method !== "Restaurante" && (
                   <Maps
@@ -281,11 +287,11 @@ const CartPage = () => {
               <div
                 className={
                   cart.deliveryMethod?.method !== "Restaurante"
-                    ? "w-full flex flex-col justify-center gap-5 lg:block lg:max-w-[635px] lg:sticky lg:top-[76px]"
-                    : "w-full flex flex-col justify-center gap-5 lg:block lg:max-w-[635px] lg:sticky lg:top-[76px] mt-5 lg:mt-0"
+                    ? "w-full flex flex-col justify-center gap-5 lg:block lg:sticky lg:top-[76px]"
+                    : "w-full flex flex-col justify-center gap-5 lg:block lg:sticky lg:top-[76px] mt-5 lg:mt-0"
                 }
               >
-                <CardTotal />
+                <CardTotal loadingDeliveryMethod={loadingDeliveryMethod} />
                 <Button
                   className="w-full text-base p-5 lg:mt-5"
                   radius="none"

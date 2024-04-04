@@ -4,6 +4,7 @@ import mongoose, { Schema, models, model } from "mongoose";
 const UnRegisteredOrderSchema = new Schema({
     name: {
         type: String,
+        trim: true,
     },
     order: {
         type: mongoose.Schema.Types.ObjectId,

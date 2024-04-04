@@ -3,24 +3,30 @@ import mongoose, { models, model, Schema } from "mongoose";
 const innerDataSchema = new Schema({
     name: {
         type: String,
+        trim: true,
     },
     price: {
         type: Number,
+        trim: true,
     },
     typeSelect: {
         type: String,
+        trim: true,
     }
 }, { timestamps: true })
 
 const boxSchema = new Schema({
     name: {
         type: String,
+        trim: true,
     },
     maxLength: {
         type: Number,
+        trim: true,
     },
     description: {
         type: String,
+        trim: true,
     },
     data: {
         type: [innerDataSchema]

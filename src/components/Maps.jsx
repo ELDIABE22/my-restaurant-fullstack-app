@@ -49,7 +49,7 @@ const Maps = ({ destinationCoords, distance, shippingCost, cart }) => {
         key="1"
         aria-label="Maps"
         title="Mapa"
-        className="text-xl font-semibold w-full mb-5 mt-5 lg:mt-0"
+        className="text-xl font-semibold mb-5 mt-5 lg:mt-0"
         subtitle={
           !isAccordionOpen && (
             <span>Ingresa la dirección y la ciudad para continuar</span>

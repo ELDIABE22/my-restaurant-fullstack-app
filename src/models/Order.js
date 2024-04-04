@@ -3,18 +3,22 @@ import mongoose, { Schema, model, models } from "mongoose";
 const additionSchema = new Schema({
     name: {
         type: String,
+        trim: true,
     },
     amount: {
         type: Number,
+        trim: true,
     },
 })
 
 const productSchema = new Schema({
     name: {
         type: String,
+        trim: true,
     },
     amount: {
         type: Number,
+        trim: true,
     },
     additions: [additionSchema],
 })
@@ -27,28 +31,35 @@ const orderSchema = new Schema({
     products: [productSchema],
     paymentMethod: { // Método de pago utilizado
         type: String,
+        trim: true,
         enum: ['Efectivo', 'Tarjeta'],
     },
     deliveryMethod: { // Método de entrega del pedido
         method: {
             type: String,
+            trim: true,
             enum: ['Domicilio', 'Restaurante'],
         },
         tableNumber: {
             type: Number,
+            trim: true,
         }
     },
     shippingAddress: { // Dirección de envío
-        type: String
+        type: String,
+        trim: true,
     },
     city: { // Ciudad de envío
-        type: String
+        type: String,
+        trim: true,
     },
     additionalDetails: { // Detalles adicionales
-        type: String
+        type: String,
+        trim: true,
     },
     totalAmount: { // Total del pedido
         type: Number,
+        trim: true,
     },
     paid: { // Estado del pago
         type: Boolean,
@@ -57,7 +68,8 @@ const orderSchema = new Schema({
     status: { // Estado del pedido (pendiente, en camino, entregado, etc.)
         type: String,
         enum: ['Pendiente', 'En camino', 'Entregado', 'Cancelado'],
-        default: 'Pendiente'
+        default: 'Pendiente',
+        trim: true,
     },
 }, { timestamps: true })
 
