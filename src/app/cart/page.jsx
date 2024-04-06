@@ -126,7 +126,9 @@ const CartPage = () => {
       }
 
       if (cart.deliveryMethod?.method !== "Restaurante") {
-        const get = await getDistance();
+        if (cart.info.address && cart.info.city) {
+          getDistance();
+        }
 
         const couponRes = await axios.get("/api/profile/coupon/used");
         const { data: couponData } = couponRes;
@@ -195,7 +197,7 @@ const CartPage = () => {
           });
         }
 
-        if (profileRes.status && get && couponRes.status) {
+        if (profileRes.status && shippingCost && couponRes.status) {
           setLoadingCartData(false);
         }
       } else {

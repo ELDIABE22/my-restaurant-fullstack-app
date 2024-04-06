@@ -80,7 +80,9 @@ const CardDeliveryMethod = ({
         setLoadingDeliveryMethod(true);
         setDeliveryMethod(value);
 
-        const get = await getDistance();
+        if (cart.info.address && cart.info.city) {
+          getDistance();
+        }
 
         const couponRes = await axios.get("/api/profile/coupon/used");
         const { data: couponData } = couponRes;
@@ -133,7 +135,7 @@ const CardDeliveryMethod = ({
           });
         }
 
-        if (couponRes.status && get) {
+        if (couponRes.status && shippingCost) {
           setLoadingDeliveryMethod(false);
         }
 
