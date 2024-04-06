@@ -123,11 +123,11 @@ const CartPage = () => {
           city: profileData.ciudad || "",
           additionalDetail: "",
         };
-
-        getDistance();
       }
 
       if (cart.deliveryMethod?.method !== "Restaurante") {
+        const get = await getDistance();
+
         const couponRes = await axios.get("/api/profile/coupon/used");
         const { data: couponData } = couponRes;
 
@@ -139,10 +139,10 @@ const CartPage = () => {
             );
 
             // Agregar las propiedades de los costos
-            const updatedOrder = {
+            const updateOrder = {
               ...prevOrder,
               info: {
-                ...cart.info,
+                ...prevOrder.info,
                 ...dataInfo,
               },
               productCost,
@@ -162,16 +162,10 @@ const CartPage = () => {
                   100,
             };
 
-            saveCartProductsToLocalStorage(updatedOrder);
+            saveCartProductsToLocalStorage(updateOrder);
 
-            return updatedOrder;
+            return updateOrder;
           });
-
-          const get = await getDistance();
-
-          if (profileRes.status && get && couponRes.status) {
-            setLoadingCartData(false);
-          }
         } else {
           setCart((prevOrder) => {
             const productCost = prevOrder.products?.reduce(
@@ -182,7 +176,7 @@ const CartPage = () => {
             const updateOrder = {
               ...prevOrder,
               info: {
-                ...cart.info,
+                ...prevOrder.info,
                 ...dataInfo,
               },
               productCost,
@@ -201,9 +195,7 @@ const CartPage = () => {
           });
         }
 
-        const get = await getDistance();
-
-        if (profileRes.status && get) {
+        if (profileRes.status && get && couponRes.status) {
           setLoadingCartData(false);
         }
       } else {
@@ -214,10 +206,10 @@ const CartPage = () => {
           );
 
           // Agregar las propiedades de los costos
-          const updatedOrder = {
+          const updateOrder = {
             ...prevOrder,
             info: {
-              ...cart.info,
+              ...prevOrder.info,
               ...dataInfo,
             },
             productCost,
@@ -225,9 +217,9 @@ const CartPage = () => {
             total: productCost + Math.round((productCost * 0.2) / 100) * 100,
           };
 
-          saveCartProductsToLocalStorage(updatedOrder);
+          saveCartProductsToLocalStorage(updateOrder);
 
-          return updatedOrder;
+          return updateOrder;
         });
 
         if (profileRes.status) {

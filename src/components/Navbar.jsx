@@ -1,5 +1,8 @@
 "use client";
 
+import { useOrder } from "@/context/OrderContext";
+import { usePathname } from "next/navigation";
+import { signOut, useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
 import {
   Navbar,
@@ -13,17 +16,18 @@ import {
   Button,
   Badge,
 } from "@nextui-org/react";
-import { signOut, useSession } from "next-auth/react";
-import { usePathname } from "next/navigation";
+
 import CarritoIcon from "./icons/CarritoIcon";
-import { useOrder } from "@/context/OrderContext";
 import axios from "axios";
 
 export default function App() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+
   const { data: session, status } = useSession();
-  const pathname = usePathname();
+
   const { cart } = useOrder();
+
+  const pathname = usePathname();
 
   const [hasUnfinishedOrders, setHasUnfinishedOrders] = useState(false);
   const [hasUnfinishedOrdersKitchen, setHasUnfinishedOrdersKitchen] =
@@ -190,12 +194,12 @@ export default function App() {
               Registrarse
             </Button>
           </NavbarItem>
-          {pathname !== "/" && cart.products?.length > 0 && (
+          {pathname !== "/" && cart?.products?.length > 0 && (
             <Link href="/cart">
               <NavbarItem className="relative sm:border-l-1 sm:border-gray-700 sm:pl-4 sm:ml-2 cursor-pointer">
                 <CarritoIcon />
                 <div className="absolute h-4 w-4 rounded-full sm:-top-1 sm:left-7 -top-1 left-4 font-semibold text-black bg-orange-peel flex items-center justify-center text-sm">
-                  {cart.products?.length}
+                  {cart?.products?.length}
                 </div>
               </NavbarItem>
             </Link>
@@ -232,12 +236,12 @@ export default function App() {
               Cerrar Sesión
             </Button>
           </NavbarItem>
-          {pathname !== "/" && cart.products?.length > 0 && (
+          {pathname !== "/" && cart?.products?.length > 0 && (
             <Link href="/cart">
               <NavbarItem className="relative sm:border-l-1 sm:border-gray-700 sm:pl-4 sm:ml-2 cursor-pointer">
                 <CarritoIcon />
                 <div className="absolute h-4 w-4 rounded-full sm:-top-1 sm:left-7 -top-1 left-4 font-semibold text-black bg-orange-peel flex items-center justify-center text-sm">
-                  {cart.products?.length}
+                  {cart?.products?.length}
                 </div>
               </NavbarItem>
             </Link>

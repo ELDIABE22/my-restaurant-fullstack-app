@@ -43,11 +43,6 @@ const FormRegister = () => {
 
       const { message } = res.data;
 
-      if (message === "El usuario ya existe!") {
-        toast.error(message);
-        localStorage.removeItem("cart");
-      }
-
       if (message === "Usuario registrado exitosamente") {
         await signIn("credentials", {
           correo,
@@ -58,10 +53,12 @@ const FormRegister = () => {
         toast.success(message);
 
         router.push("/menu");
-        setCreatingUserLoading(false);
+
+        localStorage.removeItem("cart");
       } else {
-        setCreatingUserLoading(false);
+        toast.error(message);
       }
+      setCreatingUserLoading(false);
     } catch (error) {
       const errors = error?.errors?.map((error) => error.message);
       setError(errors);

@@ -51,7 +51,34 @@ const ModalPay = ({ isOpen, onOpenChange }) => {
 
         router.push(url);
 
-        localStorage.removeItem("cart");
+        setTimeout(() => {
+          setCart(() => {
+            const initialCartOrder = {
+              info: {
+                id: "",
+                name: "",
+                phone: "",
+                address: "",
+                city: "",
+                additionalDetail: "",
+              },
+              products: [],
+              deliveryMethod: {
+                method: "Restaurante",
+              },
+              paymentMethod: null,
+              productCost: 0,
+              discount: null,
+              costOfShipping: 3500,
+              tip: 0,
+              total: 0,
+            };
+
+            saveCartProductsToLocalStorage(initialCartOrder);
+
+            return initialCartOrder;
+          });
+        }, 1000);
       } else if (paymentMethod === "Efectivo") {
         const promise = new Promise(async (resolve, reject) => {
           const res = await axios.post("/api/payment-method/cash", cart);
@@ -76,7 +103,34 @@ const ModalPay = ({ isOpen, onOpenChange }) => {
         if (message === "Pedido realizado") {
           router.push("/orders");
 
-          localStorage.removeItem("cart");
+          setTimeout(() => {
+            setCart(() => {
+              const initialCartOrder = {
+                info: {
+                  id: "",
+                  name: "",
+                  phone: "",
+                  address: "",
+                  city: "",
+                  additionalDetail: "",
+                },
+                products: [],
+                deliveryMethod: {
+                  method: "Restaurante",
+                },
+                paymentMethod: null,
+                productCost: 0,
+                discount: null,
+                costOfShipping: 3500,
+                tip: 0,
+                total: 0,
+              };
+
+              saveCartProductsToLocalStorage(initialCartOrder);
+
+              return initialCartOrder;
+            });
+          }, 1000);
         }
       }
 

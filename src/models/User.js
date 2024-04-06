@@ -25,7 +25,6 @@ const UserSchema = new Schema({
     },
     telefono: {
         type: String,
-        unique: true,
         trim: true,
     },
     ciudad: {

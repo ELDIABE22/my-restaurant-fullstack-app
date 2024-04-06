@@ -80,64 +80,38 @@ const CardDeliveryMethod = ({
         setLoadingDeliveryMethod(true);
         setDeliveryMethod(value);
 
-        getDistance();
+        const get = await getDistance();
 
-        if (!cart.discount) {
-          const couponRes = await axios.get("/api/profile/coupon/used");
-          const { data: couponData } = couponRes;
+        const couponRes = await axios.get("/api/profile/coupon/used");
+        const { data: couponData } = couponRes;
 
-          if (couponData) {
-            setCart((prevOrder) => {
-              updateDeliveryMethod = {
-                ...prevOrder,
-                deliveryMethod: {
-                  method: value,
-                },
-                costOfShipping: shippingCost,
-                discount:
+        if (couponData) {
+          setCart((prevOrder) => {
+            updateDeliveryMethod = {
+              ...prevOrder,
+              deliveryMethod: {
+                method: value,
+              },
+              costOfShipping: shippingCost,
+              discount:
+                Math.round(
+                  (prevOrder.productCost * couponData.discountPercentage) / 100
+                ) * 100,
+              tip:
+                prevOrder.tip ||
+                Math.round((prevOrder.productCost * 0.2) / 100) * 100,
+              total:
+                prevOrder.productCost + shippingCost + prevOrder.tip ||
+                Math.round((prevOrder.productCost * 0.2) / 100) * 100 -
                   Math.round(
                     (prevOrder.productCost * couponData.discountPercentage) /
                       100
-                  ) * 100,
-                tip:
-                  prevOrder.tip ||
-                  Math.round((prevOrder.productCost * 0.2) / 100) * 100,
-                total:
-                  prevOrder.productCost + shippingCost + prevOrder.tip ||
-                  Math.round((prevOrder.productCost * 0.2) / 100) * 100 -
-                    Math.round(
-                      (prevOrder.productCost * couponData.discountPercentage) /
-                        100
-                    ) *
-                      100,
-              };
+                  ) *
+                    100,
+            };
 
-              return updateDeliveryMethod;
-            });
-          } else {
-            setCart((prevOrder) => {
-              updateDeliveryMethod = {
-                ...prevOrder,
-                deliveryMethod: {
-                  method: value,
-                },
-                costOfShipping: shippingCost,
-                discount: null,
-                tip:
-                  prevOrder.tip ||
-                  Math.round((prevOrder.productCost * 0.2) / 100) * 100,
-                total:
-                  prevOrder.productCost + shippingCost + prevOrder.tip ||
-                  Math.round((prevOrder.productCost * 0.2) / 100) * 100,
-              };
-
-              return updateDeliveryMethod;
-            });
-          }
-
-          if (couponRes.status) {
-            setLoadingDeliveryMethod(false);
-          }
+            return updateDeliveryMethod;
+          });
         } else {
           setCart((prevOrder) => {
             updateDeliveryMethod = {
@@ -146,18 +120,21 @@ const CardDeliveryMethod = ({
                 method: value,
               },
               costOfShipping: shippingCost,
-              discount: prevOrder.discount,
+              discount: null,
               tip:
                 prevOrder.tip ||
                 Math.round((prevOrder.productCost * 0.2) / 100) * 100,
               total:
                 prevOrder.productCost + shippingCost + prevOrder.tip ||
-                Math.round((prevOrder.productCost * 0.2) / 100) * 100 -
-                  prevOrder.discount,
+                Math.round((prevOrder.productCost * 0.2) / 100) * 100,
             };
 
             return updateDeliveryMethod;
           });
+        }
+
+        if (couponRes.status && get) {
+          setLoadingDeliveryMethod(false);
         }
 
         saveCartProductsToLocalStorage(updateDeliveryMethod);

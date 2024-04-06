@@ -30,7 +30,7 @@ export async function POST(req) {
 
         // Verificar si algún pedido ya está ocupando la mesa
         const mesaOcupada = validatedTableNum.some(order => {
-            return order.status === "Pendiente" && order.deliveryMethod.tableNumber == data.deliveryMethod.tableNum;
+            return order.status === "Pendiente" && order.paid && order.deliveryMethod.tableNumber == data.deliveryMethod.tableNum;
         });
 
         if (mesaOcupada) {
