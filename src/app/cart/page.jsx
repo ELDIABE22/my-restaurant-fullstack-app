@@ -135,34 +135,60 @@ const CartPage = () => {
 
         if (couponData) {
           setCart((prevOrder) => {
+            let updateOrder = {};
+
             const productCost = prevOrder.products?.reduce(
               (acc, product) => acc + product.total,
               0
             );
 
-            // Agregar las propiedades de los costos
-            const updateOrder = {
-              ...prevOrder,
-              info: {
-                ...prevOrder.info,
-                ...dataInfo,
-              },
-              productCost,
-              costOfShipping: shippingCost,
-              discount:
-                Math.round(
-                  (productCost * couponData.discountPercentage) / 100
-                ) * 100,
-              tip: Math.round((productCost * 0.2) / 100) * 100,
-              total:
-                productCost +
-                shippingCost +
-                Math.round((productCost * 0.2) / 100) * 100 -
-                Math.round(
-                  (productCost * couponData.discountPercentage) / 100
-                ) *
-                  100,
-            };
+            if (!prevOrder.info.address && !prevOrder.info.city) {
+              updateOrder = {
+                ...prevOrder,
+                info: {
+                  ...prevOrder.info,
+                  ...dataInfo,
+                },
+                productCost,
+                costOfShipping: null,
+                discount:
+                  Math.round(
+                    (productCost * couponData.discountPercentage) / 100
+                  ) * 100,
+                tip: Math.round((productCost * 0.2) / 100) * 100,
+                total:
+                  productCost +
+                  shippingCost +
+                  Math.round((productCost * 0.2) / 100) * 100 -
+                  Math.round(
+                    (productCost * couponData.discountPercentage) / 100
+                  ) *
+                    100,
+              };
+            } else {
+              updateOrder = {
+                ...prevOrder,
+                info: {
+                  ...prevOrder.info,
+                  ...dataInfo,
+                },
+                productCost,
+                costOfShipping: shippingCost,
+                discount:
+                  Math.round(
+                    (productCost * couponData.discountPercentage) / 100
+                  ) * 100,
+                tip: Math.round((productCost * 0.2) / 100) * 100,
+                total:
+                  productCost +
+                  shippingCost +
+                  Math.round((productCost * 0.2) / 100) * 100 -
+                  Math.round(
+                    (productCost * couponData.discountPercentage) / 100
+                  ) *
+                    100,
+              };
+            }
 
             saveCartProductsToLocalStorage(updateOrder);
 
@@ -170,26 +196,46 @@ const CartPage = () => {
           });
         } else {
           setCart((prevOrder) => {
+            let updateOrder = {};
+
             const productCost = prevOrder.products?.reduce(
               (acc, product) => acc + product.total,
               0
             );
 
-            const updateOrder = {
-              ...prevOrder,
-              info: {
-                ...prevOrder.info,
-                ...dataInfo,
-              },
-              productCost,
-              costOfShipping: shippingCost,
-              discount: null,
-              tip: Math.round((productCost * 0.2) / 100) * 100,
-              total:
-                productCost +
-                shippingCost +
-                Math.round((productCost * 0.2) / 100) * 100,
-            };
+            if (!prevOrder.info.address && !prevOrder.info.city) {
+              updateOrder = {
+                ...prevOrder,
+                info: {
+                  ...prevOrder.info,
+                  ...dataInfo,
+                },
+                productCost,
+                costOfShipping: null,
+                discount: null,
+                tip: Math.round((productCost * 0.2) / 100) * 100,
+                total:
+                  productCost +
+                  shippingCost +
+                  Math.round((productCost * 0.2) / 100) * 100,
+              };
+            } else {
+              updateOrder = {
+                ...prevOrder,
+                info: {
+                  ...prevOrder.info,
+                  ...dataInfo,
+                },
+                productCost,
+                costOfShipping: shippingCost,
+                discount: null,
+                tip: Math.round((productCost * 0.2) / 100) * 100,
+                total:
+                  productCost +
+                  shippingCost +
+                  Math.round((productCost * 0.2) / 100) * 100,
+              };
+            }
 
             saveCartProductsToLocalStorage(updateOrder);
 
@@ -197,7 +243,7 @@ const CartPage = () => {
           });
         }
 
-        if (profileRes.status && shippingCost && couponRes.status) {
+        if (profileRes.status && couponRes.status) {
           setLoadingCartData(false);
         }
       } else {

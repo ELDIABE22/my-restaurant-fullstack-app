@@ -1,5 +1,3 @@
-"use client";
-
 import { Card, CardBody, CardFooter, Image } from "@nextui-org/react";
 
 const CardImageMenuItem = ({ itemImage, setItemImage, params }) => {

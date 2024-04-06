@@ -15,6 +15,7 @@
     "bcrypt": "^5.1.1",
     "cloudinary": "^2.0.1",
     "dotenv": "^16.3.1",
+    "firebase": "^10.10.0",
     "framer-motion": "^10.17.12",
     "haversine": "^1.1.1",
     "mongoose": "^8.0.3",

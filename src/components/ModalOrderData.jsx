@@ -74,12 +74,24 @@ const ModalOrderData = ({
             dataUser.updatedUser.direccion !== cart.info.address) ||
           dataUser.updatedUser.ciudad !== cart.info.city
         ) {
-          updateCosts();
           if (typeof window !== "undefined") {
             window.location.reload();
           }
         } else if (dataUser.message === "Usuario actualizado exitosamente") {
-          updateCosts();
+          setCart((prevOrder) => {
+            const updateUser = {
+              ...prevOrder,
+              info: {
+                ...prevOrder.info,
+                name: dataUser.updatedUser.nombreCompleto,
+                phone: dataUser.updatedUser.telefono,
+              },
+            };
+
+            saveCartProductsToLocalStorage(updateUser);
+
+            return updateUser;
+          });
         }
       } else {
         categorySchema.parse({ name });
@@ -95,10 +107,10 @@ const ModalOrderData = ({
               ciudad: city,
             });
 
-            const { message } = res.data;
+            const { message, updatedUser } = res.data;
 
             if (message === "Usuario actualizado exitosamente") {
-              resolve(message);
+              resolve({ message, updatedUser });
             } else {
               reject(new Error(message));
             }
@@ -106,14 +118,26 @@ const ModalOrderData = ({
 
           await toast.promise(promise, {
             loading: "Actualizando datos...",
-            success: (message) => message,
+            success: ({ message }) => message,
             error: (err) => err.message,
           });
 
           const dataUser = await promise;
 
-          if (dataUser === "Usuario actualizado exitosamente") {
-            updateCosts();
+          if (dataUser.message === "Usuario actualizado exitosamente") {
+            setCart((prevOrder) => {
+              const updateUser = {
+                ...prevOrder,
+                info: {
+                  ...prevOrder.info,
+                  name: dataUser.updatedUser.nombreCompleto,
+                },
+              };
+
+              saveCartProductsToLocalStorage(updateUser);
+
+              return updateUser;
+            });
           }
         } else if (status === "unauthenticated") {
           setCart((prevOrder) => {

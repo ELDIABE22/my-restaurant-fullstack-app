@@ -1,8 +1,9 @@
 import { connectDB } from "@/database/mongodb";
 import { NextResponse } from "next/server";
 import { normalizeString } from "@/utils/stringUtils";
+import { deleteFile, uploadFile } from "@/firebase/config";
+
 import MenuItem from "@/models/MenuItem";
-import { deleteImage, uploadImage } from "@/utils/cloudinary";
 
 export async function POST(req) {
     try {
@@ -23,10 +24,10 @@ export async function POST(req) {
         }
 
         if (image !== "null") {
-            const imageSave = await uploadImage(image);
+            const imageSave = await uploadFile(image);
             normalizedData.image = {
-                url: imageSave.secure_url,
-                public_id: imageSave.public_id,
+                url: imageSave.url,
+                public_id: imageSave.id,
             };
         } else {
             return NextResponse.json({ message: "Se requiere la foto" });
@@ -85,10 +86,10 @@ export async function PUT(req) {
                     public_id: idRemoveImage,
                 };
             } else {
-                const imageSave = await uploadImage(image);
+                const imageSave = await uploadFile(image);
                 imageUrl = {
-                    url: imageSave.secure_url,
-                    public_id: imageSave.public_id,
+                    url: imageSave.url,
+                    public_id: imageSave.id,
                 };
             }
 
@@ -99,7 +100,7 @@ export async function PUT(req) {
         }
 
         if (idRemoveImage && typeof image !== 'string') {
-            await deleteImage(idRemoveImage);
+            await deleteFile(idRemoveImage);
         }
 
         await MenuItem.findByIdAndUpdate({ _id: id }, normalizedData);
@@ -122,7 +123,7 @@ export async function DELETE(req) {
         await MenuItem.findOneAndDelete({ _id: menuId });
 
         if (imageId) {
-            await deleteImage(imageId);
+            await deleteFile(imageId);
         }
 
         return NextResponse.json({ message: "Menú de elemento eliminado" });

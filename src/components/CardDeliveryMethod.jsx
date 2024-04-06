@@ -135,7 +135,7 @@ const CardDeliveryMethod = ({
           });
         }
 
-        if (couponRes.status && shippingCost) {
+        if (couponRes.status) {
           setLoadingDeliveryMethod(false);
         }
 
