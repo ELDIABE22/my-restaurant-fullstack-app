@@ -32,6 +32,7 @@ import toast from "react-hot-toast";
 import ModalOrderDetails from "@/components/ModalOrderDetails";
 import ModalUpdateOrderStatus from "@/components/ModalUpdateOrderStatus";
 import ModalConfirmOrderDetails from "@/components/ModalConfirmOrderDetails";
+import { socket } from "@/utils/socket";
 
 const ProfileOrdersPage = () => {
   const [orders, setOrders] = useState([]);
@@ -60,51 +61,119 @@ const ProfileOrdersPage = () => {
   const router = useRouter();
 
   // Función para consultar los pedidos
-  async function getOrderAndUsers() {
+  function getOrderAndUsers() {
     try {
-      const resOrder = await axios.get("/api/order");
-      const filteredOrders = resOrder.data.filter((order) => order.paid); // Filtrar solo los pedidos pagados
-      const ordersWithUsers = await Promise.all(
-        filteredOrders.map(async (order) => {
-          let userId = order.user;
-          let registeredUser, unregisteredUser;
+      socket.emit("getOrders");
 
-          try {
-            // Buscar el usuario en los usuarios registrados
-            const resRegisteredUser = await axios.get(`/api/profile/users`);
-            registeredUser = resRegisteredUser.data.find(
-              (user) => user._id === userId
-            );
-          } catch (error) {
-            console.error("Error al buscar el usuario registrado:", error);
-          }
+      socket.on("orders", async (data) => {
+        const filteredOrders = data.filter((order) => order.paid); // Filtrar solo los pedidos pagados
 
-          if (!registeredUser) {
+        const ordersWithUsers = await Promise.all(
+          filteredOrders.map(async (order) => {
+            let userId = order.user;
+            let registeredUser, unregisteredUser;
+
             try {
-              // Si no se encuentra el usuario en los registrados, buscamos en los no registrados
-              const resUnregisteredUser = await axios.get(
-                `/api/profile/users-unregistered`
-              );
-              unregisteredUser = resUnregisteredUser.data.find(
+              // Buscar el usuario en los usuarios registrados
+              const resRegisteredUser = await axios.get(`/api/profile/users`);
+              registeredUser = resRegisteredUser.data.find(
                 (user) => user._id === userId
               );
             } catch (error) {
-              console.error("Error al buscar el usuario no registrado:", error);
+              console.error("Error al buscar el usuario registrado:", error);
             }
-          }
 
-          if (registeredUser) {
-            return { ...order, user: { name: registeredUser.nombreCompleto } };
-          } else if (unregisteredUser) {
-            return { ...order, user: { name: unregisteredUser.name } };
-          } else {
-            return order; // Mantenemos el ID de usuario si no se encuentra en ninguna lista
-          }
-        })
-      );
+            if (!registeredUser) {
+              try {
+                // Si no se encuentra el usuario en los registrados, buscamos en los no registrados
+                const resUnregisteredUser = await axios.get(
+                  `/api/profile/users-unregistered`
+                );
+                unregisteredUser = resUnregisteredUser.data.find(
+                  (user) => user._id === userId
+                );
+              } catch (error) {
+                console.error(
+                  "Error al buscar el usuario no registrado:",
+                  error
+                );
+              }
+            }
 
-      setOrders(ordersWithUsers);
-      setLoading(false);
+            if (registeredUser) {
+              return {
+                ...order,
+                user: { name: registeredUser.nombreCompleto },
+              };
+            } else if (unregisteredUser) {
+              return { ...order, user: { name: unregisteredUser.name } };
+            } else {
+              return order; // Mantenemos el ID de usuario si no se encuentra en ninguna lista
+            }
+          })
+        );
+
+        setOrders(ordersWithUsers);
+        setLoading(false);
+      });
+
+      socket.on("ordersUpdated", async (data) => {
+        const filteredOrders = data.filter((order) => order.paid); // Filtrar solo los pedidos pagados
+
+        const ordersWithUsers = await Promise.all(
+          filteredOrders.map(async (order) => {
+            let userId = order.user;
+            let registeredUser, unregisteredUser;
+
+            try {
+              // Buscar el usuario en los usuarios registrados
+              const resRegisteredUser = await axios.get(`/api/profile/users`);
+              registeredUser = resRegisteredUser.data.find(
+                (user) => user._id === userId
+              );
+            } catch (error) {
+              console.error("Error al buscar el usuario registrado:", error);
+            }
+
+            if (!registeredUser) {
+              try {
+                // Si no se encuentra el usuario en los registrados, buscamos en los no registrados
+                const resUnregisteredUser = await axios.get(
+                  `/api/profile/users-unregistered`
+                );
+                unregisteredUser = resUnregisteredUser.data.find(
+                  (user) => user._id === userId
+                );
+              } catch (error) {
+                console.error(
+                  "Error al buscar el usuario no registrado:",
+                  error
+                );
+              }
+            }
+
+            if (registeredUser) {
+              return {
+                ...order,
+                user: { name: registeredUser.nombreCompleto },
+              };
+            } else if (unregisteredUser) {
+              return { ...order, user: { name: unregisteredUser.name } };
+            } else {
+              return order; // Mantenemos el ID de usuario si no se encuentra en ninguna lista
+            }
+          })
+        );
+
+        setOrders(ordersWithUsers);
+        setLoading(false);
+      });
+
+      return () => {
+        socket.off("orders");
+        socket.off("ordersUpdated");
+        setLoading(false);
+      };
     } catch (error) {
       console.error("Error al obtener pedidos y usuarios:", error);
     }
@@ -196,11 +265,7 @@ const ProfileOrdersPage = () => {
 
   // useEffect para ejecutar getOrderAndUsers()
   useEffect(() => {
-    const interval = setInterval(() => {
-      getOrderAndUsers();
-    }, 1000);
-
-    return () => clearInterval(interval);
+    getOrderAndUsers();
   }, []);
 
   // Definición de las columnas de encabezado de la tabla, especificando la clave y la etiqueta para cada columna.
@@ -362,6 +427,7 @@ const ProfileOrdersPage = () => {
                 {order.status !== "Entregado" && (
                   <DropdownItem
                     textValue="updateStatus"
+                    color="success"
                     onPress={() => handleOpenModalUpdateOrderStatus(order)}
                   >
                     Cambiar Estado
@@ -369,12 +435,14 @@ const ProfileOrdersPage = () => {
                 )}
                 <DropdownItem
                   textValue="updateStatus"
+                  color="warning"
                   onPress={() => handleOpenModal(order)}
                 >
                   Más detalles
                 </DropdownItem>
                 <DropdownItem
                   textValue="Eliminar"
+                  color="danger"
                   onPress={() => handleOpenModalConfirmDelete(order._id)}
                 >
                   Eliminar
@@ -420,11 +488,30 @@ const ProfileOrdersPage = () => {
                 selectionMode="multiple"
                 onSelectionChange={setStatusFilter}
               >
-                {statusOptions.map((status) => (
-                  <DropdownItem key={status.uid} className="capitalize">
-                    {capitalize(status.name)}
-                  </DropdownItem>
-                ))}
+                {statusOptions.map((status) => {
+                  let color;
+                  switch (status.name) {
+                    case "Pendiente":
+                      color = "warning";
+                      break;
+                    case "En camino":
+                      color = "primary";
+                      break;
+                    case "Entregado":
+                      color = "success";
+                      break;
+                  }
+
+                  return (
+                    <DropdownItem
+                      key={status.uid}
+                      color={color}
+                      className="capitalize"
+                    >
+                      {capitalize(status.name)}
+                    </DropdownItem>
+                  );
+                })}
               </DropdownMenu>
             </Dropdown>
           </div>

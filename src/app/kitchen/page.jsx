@@ -3,9 +3,9 @@
 import { Spinner } from "@nextui-org/react";
 import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
-import axios from "axios";
-import CardOrderKitchen from "@/components/CardOrderKitchen";
 import { useRouter } from "next/navigation";
+import { socket } from "@/utils/socket";
+import CardOrderKitchen from "@/components/CardOrderKitchen";
 
 const KitchenPage = () => {
   const { data: session, status } = useSession();
@@ -18,14 +18,32 @@ const KitchenPage = () => {
   // Función para consultar las ordenes del usuario registrado
   async function getOrders() {
     try {
-      const res = await axios.get("/api/order");
-      const { data } = res;
-      const orderData = data.filter(
-        (order) => order.paid === true && order.status === "Pendiente"
-      );
+      socket.emit("getOrders");
 
-      setOrders(orderData);
-      setLoanding(false);
+      // Escucha el evento 'orders' para recibir las órdenes iniciales
+      socket.on("orders", (data) => {
+        const orderData = data.filter(
+          (order) => order.paid === true && order.status === "Pendiente"
+        );
+        setOrders(orderData);
+        setLoanding(false);
+      });
+
+      // Escucha el evento 'ordersUpdated' para recibir actualizaciones en tiempo real
+      socket.on("ordersUpdated", (data) => {
+        const orderData = data.filter(
+          (order) => order.paid === true && order.status === "Pendiente"
+        );
+        setOrders(orderData);
+        setLoanding(false);
+      });
+
+      // Limpiar los oyentes cuando el componente se desmonte
+      return () => {
+        socket.off("orders");
+        socket.off("ordersUpdated");
+        setLoanding(false);
+      };
     } catch (error) {
       console.log(error.message);
       setLoanding(false);
@@ -34,18 +52,9 @@ const KitchenPage = () => {
 
   // useEffect para ejecutar getOrders()
   useEffect(() => {
-    const intervalId = setInterval(() => {
-      if (status === "authenticated" && session?.user.admin) {
-        getOrders();
-      }
-    }, 1000);
-
-    return () => clearInterval(intervalId);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [status]);
-
-  useEffect(() => {
-    if (status === "unauthenticated" && !session?.user.admin) {
+    if (status === "authenticated" && session?.user.admin) {
+      getOrders();
+    } else if (status === "unauthenticated" && !session?.user.admin) {
       return router.push("/");
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps

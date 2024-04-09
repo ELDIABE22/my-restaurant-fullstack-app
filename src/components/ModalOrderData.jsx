@@ -20,7 +20,6 @@ const ModalOrderData = ({
   setCart,
   saveCartProductsToLocalStorage,
   setIsModalOpen,
-  updateCosts,
 }) => {
   const { status } = useSession();
 

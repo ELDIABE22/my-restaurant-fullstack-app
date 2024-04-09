@@ -3,6 +3,7 @@
 import CardOrder from "@/components/CardOrder";
 import { ChevronDownIcon } from "@/components/icons/ChevronDownIcon";
 import { capitalize } from "@/utils/capitalize";
+import { socket } from "@/utils/socket";
 import {
   Button,
   Divider,
@@ -13,7 +14,6 @@ import {
   Pagination,
   Spinner,
 } from "@nextui-org/react";
-import axios from "axios";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
@@ -69,13 +69,29 @@ const OrderPage = () => {
   // Función para consultar las ordenes del usuario registrado
   async function getOrders() {
     try {
-      const res = await axios.get("/api/order");
-      const { data } = res;
-      const orderData = data.filter(
-        (order) => order.user === session?.user._id && order.paid === true
-      );
-      setOrders(orderData);
-      setLoadingOrderData(false);
+      socket.emit("getOrders");
+
+      socket.on("orders", (data) => {
+        const orderData = data.filter(
+          (order) => order.user === session?.user._id && order.paid === true
+        );
+        setOrders(orderData);
+        setLoadingOrderData(false);
+      });
+
+      socket.on("ordersUpdated", (data) => {
+        const orderData = data.filter(
+          (order) => order.user === session?.user._id && order.paid === true
+        );
+        setOrders(orderData);
+        setLoadingOrderData(false);
+      });
+
+      return () => {
+        socket.off("orders");
+        socket.off("ordersUpdated");
+        setLoadingOrderData(false);
+      };
     } catch (error) {
       console.log(error.message);
     }
@@ -119,11 +135,30 @@ const OrderPage = () => {
                 selectionMode="multiple"
                 onSelectionChange={setStatusFilter}
               >
-                {statusOptions.map((status) => (
-                  <DropdownItem key={status.uid} className="capitalize">
-                    {capitalize(status.name)}
-                  </DropdownItem>
-                ))}
+                {statusOptions.map((status) => {
+                  let color;
+                  switch (status.name) {
+                    case "Pendiente":
+                      color = "warning";
+                      break;
+                    case "En camino":
+                      color = "primary";
+                      break;
+                    case "Entregado":
+                      color = "success";
+                      break;
+                  }
+
+                  return (
+                    <DropdownItem
+                      key={status.uid}
+                      color={color}
+                      className="capitalize"
+                    >
+                      {capitalize(status.name)}
+                    </DropdownItem>
+                  );
+                })}
               </DropdownMenu>
             </Dropdown>
           </div>

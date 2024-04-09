@@ -6,7 +6,15 @@ import {
   Divider,
   Tabs,
   Tab,
+  Button,
+  Dropdown,
+  DropdownTrigger,
+  DropdownItem,
+  DropdownMenu,
 } from "@nextui-org/react";
+import toast from "react-hot-toast";
+import axios from "axios";
+import { VerticalDotsIcon } from "./icons/VerticalDotsIcon";
 
 const CardOrder = ({ order }) => {
   let disabledKeys = [];
@@ -37,10 +45,35 @@ const CardOrder = ({ order }) => {
     hour12: true,
   });
 
+  // Función para cancelar pedido
+  async function handleDelete(id) {
+    try {
+      const promise = new Promise(async (resolve, reject) => {
+        const res = await axios.delete(`/api/order/${id}`);
+
+        const { message } = res.data;
+
+        if (message === "Pedido cancelado") {
+          resolve(message);
+        } else {
+          reject(new Error(message));
+        }
+      });
+
+      await toast.promise(promise, {
+        loading: "Cancelando pedido...",
+        success: (message) => message,
+        error: (err) => err.message,
+      });
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
   return (
-    <Card className="max-w-[400px]">
+    <Card className="min-w-[300px]">
       <CardHeader>
-        <div className="flex flex-col w-full">
+        <div className="relative flex flex-col w-full">
           <div className="flex justify-between">
             <div className="flex">
               <p className="font-bold text-inherit text-black">DIABE</p>
@@ -51,6 +84,31 @@ const CardOrder = ({ order }) => {
             <div>
               <span className="text-xs text-default-500">{formattedDate}</span>
             </div>
+            {order.status !== "Entregado" && (
+              <div className="absolute right-0">
+                <Dropdown>
+                  <DropdownTrigger>
+                    <Button
+                      isIconOnly
+                      size="sm"
+                      variant="light"
+                      aria-label="Icono de opciones de acciones"
+                    >
+                      <VerticalDotsIcon className="text-black" />
+                    </Button>
+                  </DropdownTrigger>
+                  <DropdownMenu aria-label="Opciones de acciones">
+                    <DropdownItem
+                      textValue="Eliminar"
+                      color="danger"
+                      onPress={() => handleDelete(order._id)}
+                    >
+                      Cancelar
+                    </DropdownItem>
+                  </DropdownMenu>
+                </Dropdown>
+              </div>
+            )}
           </div>
           <p className="text-md">
             ID Pedido:{" "}

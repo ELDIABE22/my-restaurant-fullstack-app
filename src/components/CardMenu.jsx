@@ -91,7 +91,7 @@ export default function CardMenu({ item }) {
             radius="lg"
             width="100%"
             alt={item.name}
-            className="w-full object-cover h-[140px]"
+            className="object-cover h-[140px]"
             src={item.image.url}
           />
         </CardBody>

@@ -26,6 +26,7 @@ import {
   Input,
   Link,
 } from "@nextui-org/react";
+import { socket } from "@/utils/socket";
 
 const UserPage = () => {
   const [users, setUsers] = useState([]);
@@ -170,9 +171,8 @@ const UserPage = () => {
                 </Button>
               </DropdownTrigger>
               <DropdownMenu aria-label="Opciones de acciones">
-                <DropdownItem textValue="Editar">
+                <DropdownItem textValue="Editar" color="warning">
                   <Link
-                    color="warning"
                     href={
                       session?.user._id === user._id
                         ? "/profile"
@@ -183,7 +183,9 @@ const UserPage = () => {
                     Editar
                   </Link>
                 </DropdownItem>
-                <DropdownItem textValue="Eliminar">Eliminar</DropdownItem>
+                <DropdownItem textValue="Desactivar" color="danger">
+                  Desactivar
+                </DropdownItem>
               </DropdownMenu>
             </Dropdown>
           </div>
@@ -225,11 +227,27 @@ const UserPage = () => {
                 selectionMode="multiple"
                 onSelectionChange={setStatusFilter}
               >
-                {statusOptions.map((status) => (
-                  <DropdownItem key={status.uid} className="capitalize">
-                    {capitalize(status.name)}
-                  </DropdownItem>
-                ))}
+                {statusOptions.map((status) => {
+                  let color;
+                  switch (status.name) {
+                    case "Admin":
+                      color = "warning";
+                      break;
+                    case "Usuario":
+                      color = "primary";
+                      break;
+                  }
+
+                  return (
+                    <DropdownItem
+                      key={status.uid}
+                      color={color}
+                      className="capitalize"
+                    >
+                      {capitalize(status.name)}
+                    </DropdownItem>
+                  );
+                })}
               </DropdownMenu>
             </Dropdown>
           </div>
@@ -259,12 +277,23 @@ const UserPage = () => {
   useEffect(() => {
     if (status === "authenticated") {
       if (session?.user.admin) {
-        fetch("/api/profile/users").then((res) => {
-          res.json().then((data) => {
-            setUsers(data);
-            setLoading(false);
-          });
+        socket.emit("getUsers");
+
+        socket.on("users", (data) => {
+          setUsers(data);
+          setLoading(false);
         });
+
+        socket.on("usersUpdated", (data) => {
+          setUsers(data);
+          setLoading(false);
+        });
+
+        return () => {
+          socket.off("users");
+          socket.off("usersUpdated");
+          setLoading(false);
+        };
       } else {
         return router.push("/");
       }
@@ -284,7 +313,7 @@ const UserPage = () => {
       ) : (
         <Table
           aria-label="tabla de usuarios"
-          className="mx-auto w-[70%]"
+          className="mx-auto"
           topContent={topContent}
           bottomContent={bottomContent}
         >
