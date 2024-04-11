@@ -16,6 +16,7 @@ import {
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
+import axios from "axios";
 
 const OrderPage = () => {
   const { data: session, status } = useSession();

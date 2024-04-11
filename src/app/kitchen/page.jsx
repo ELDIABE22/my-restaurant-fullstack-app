@@ -4,6 +4,7 @@ import { Spinner } from "@nextui-org/react";
 import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import axios from "axios";
 import CardOrderKitchen from "@/components/CardOrderKitchen";
 
 const KitchenPage = () => {

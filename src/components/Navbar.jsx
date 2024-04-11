@@ -16,6 +16,7 @@ import {
   Button,
   Badge,
 } from "@nextui-org/react";
+import axios from "axios";
 
 import CarritoIcon from "./icons/CarritoIcon";
 
