@@ -97,7 +97,10 @@ const UserUpdatePage = ({ params }) => {
       {loading ? (
         <Spinner label="Cargando información..." color="warning" />
       ) : (
-        <form onSubmit={handleUpdate} className="flex flex-col w-2/4 gap-4 p-3">
+        <form
+          onSubmit={handleUpdate}
+          className="flex flex-col lg:w-9/12 gap-4 p-3"
+        >
           <Input
             type="text"
             label="Nombre Completo"

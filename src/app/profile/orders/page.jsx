@@ -32,7 +32,6 @@ import toast from "react-hot-toast";
 import ModalOrderDetails from "@/components/ModalOrderDetails";
 import ModalUpdateOrderStatus from "@/components/ModalUpdateOrderStatus";
 import ModalConfirmOrderDetails from "@/components/ModalConfirmOrderDetails";
-import { socket } from "@/utils/socket";
 
 const ProfileOrdersPage = () => {
   const [orders, setOrders] = useState([]);
@@ -61,119 +60,51 @@ const ProfileOrdersPage = () => {
   const router = useRouter();
 
   // Función para consultar los pedidos
-  function getOrderAndUsers() {
+  async function getOrderAndUsers() {
     try {
-      socket.emit("getOrders");
+      const resOrder = await axios.get("/api/order");
+      const filteredOrders = resOrder.data.filter((order) => order.paid); // Filtrar solo los pedidos pagados
+      const ordersWithUsers = await Promise.all(
+        filteredOrders.map(async (order) => {
+          let userId = order.user;
+          let registeredUser, unregisteredUser;
 
-      socket.on("orders", async (data) => {
-        const filteredOrders = data.filter((order) => order.paid); // Filtrar solo los pedidos pagados
+          try {
+            // Buscar el usuario en los usuarios registrados
+            const resRegisteredUser = await axios.get(`/api/profile/users`);
+            registeredUser = resRegisteredUser.data.find(
+              (user) => user._id === userId
+            );
+          } catch (error) {
+            console.error("Error al buscar el usuario registrado:", error);
+          }
 
-        const ordersWithUsers = await Promise.all(
-          filteredOrders.map(async (order) => {
-            let userId = order.user;
-            let registeredUser, unregisteredUser;
-
+          if (!registeredUser) {
             try {
-              // Buscar el usuario en los usuarios registrados
-              const resRegisteredUser = await axios.get(`/api/profile/users`);
-              registeredUser = resRegisteredUser.data.find(
+              // Si no se encuentra el usuario en los registrados, buscamos en los no registrados
+              const resUnregisteredUser = await axios.get(
+                `/api/profile/users-unregistered`
+              );
+              unregisteredUser = resUnregisteredUser.data.find(
                 (user) => user._id === userId
               );
             } catch (error) {
-              console.error("Error al buscar el usuario registrado:", error);
+              console.error("Error al buscar el usuario no registrado:", error);
             }
+          }
 
-            if (!registeredUser) {
-              try {
-                // Si no se encuentra el usuario en los registrados, buscamos en los no registrados
-                const resUnregisteredUser = await axios.get(
-                  `/api/profile/users-unregistered`
-                );
-                unregisteredUser = resUnregisteredUser.data.find(
-                  (user) => user._id === userId
-                );
-              } catch (error) {
-                console.error(
-                  "Error al buscar el usuario no registrado:",
-                  error
-                );
-              }
-            }
+          if (registeredUser) {
+            return { ...order, user: { name: registeredUser.nombreCompleto } };
+          } else if (unregisteredUser) {
+            return { ...order, user: { name: unregisteredUser.name } };
+          } else {
+            return order; // Mantenemos el ID de usuario si no se encuentra en ninguna lista
+          }
+        })
+      );
 
-            if (registeredUser) {
-              return {
-                ...order,
-                user: { name: registeredUser.nombreCompleto },
-              };
-            } else if (unregisteredUser) {
-              return { ...order, user: { name: unregisteredUser.name } };
-            } else {
-              return order; // Mantenemos el ID de usuario si no se encuentra en ninguna lista
-            }
-          })
-        );
-
-        setOrders(ordersWithUsers);
-        setLoading(false);
-      });
-
-      socket.on("ordersUpdated", async (data) => {
-        const filteredOrders = data.filter((order) => order.paid); // Filtrar solo los pedidos pagados
-
-        const ordersWithUsers = await Promise.all(
-          filteredOrders.map(async (order) => {
-            let userId = order.user;
-            let registeredUser, unregisteredUser;
-
-            try {
-              // Buscar el usuario en los usuarios registrados
-              const resRegisteredUser = await axios.get(`/api/profile/users`);
-              registeredUser = resRegisteredUser.data.find(
-                (user) => user._id === userId
-              );
-            } catch (error) {
-              console.error("Error al buscar el usuario registrado:", error);
-            }
-
-            if (!registeredUser) {
-              try {
-                // Si no se encuentra el usuario en los registrados, buscamos en los no registrados
-                const resUnregisteredUser = await axios.get(
-                  `/api/profile/users-unregistered`
-                );
-                unregisteredUser = resUnregisteredUser.data.find(
-                  (user) => user._id === userId
-                );
-              } catch (error) {
-                console.error(
-                  "Error al buscar el usuario no registrado:",
-                  error
-                );
-              }
-            }
-
-            if (registeredUser) {
-              return {
-                ...order,
-                user: { name: registeredUser.nombreCompleto },
-              };
-            } else if (unregisteredUser) {
-              return { ...order, user: { name: unregisteredUser.name } };
-            } else {
-              return order; // Mantenemos el ID de usuario si no se encuentra en ninguna lista
-            }
-          })
-        );
-
-        setOrders(ordersWithUsers);
-        setLoading(false);
-      });
-
-      return () => {
-        socket.off("orders");
-        socket.off("ordersUpdated");
-        setLoading(false);
-      };
+      setOrders(ordersWithUsers);
+      setLoading(false);
     } catch (error) {
       console.error("Error al obtener pedidos y usuarios:", error);
     }
@@ -265,7 +196,11 @@ const ProfileOrdersPage = () => {
 
   // useEffect para ejecutar getOrderAndUsers()
   useEffect(() => {
-    getOrderAndUsers();
+    const interval = setInterval(() => {
+      getOrderAndUsers();
+    }, 5000);
+
+    return () => clearInterval(interval);
   }, []);
 
   // Definición de las columnas de encabezado de la tabla, especificando la clave y la etiqueta para cada columna.

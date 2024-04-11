@@ -1,6 +1,5 @@
 "use client";
 
-import { socket } from "@/utils/socket";
 import { useOrder } from "@/context/OrderContext";
 import { usePathname } from "next/navigation";
 import { signOut, useSession } from "next-auth/react";
@@ -44,45 +43,19 @@ export default function App() {
   // Función para obtener pedidos pendientes
   const fetchUnfinishedOrders = async () => {
     try {
-      socket.emit("getOrders");
-
-      socket.on("orders", (data) => {
-        const pendingOrders = data.some(
-          (order) =>
-            order.user === session?.user._id &&
-            order.paid === true &&
-            order.status !== "Entregado"
-        );
-
-        const pendingOrdersKitchen = data.some(
-          (order) => order.paid === true && order.status === "Pendiente"
-        );
-
-        setHasUnfinishedOrders(pendingOrders);
-        setHasUnfinishedOrdersKitchen(pendingOrdersKitchen);
-      });
-
-      // Escucha el evento 'ordersUpdated' para recibir actualizaciones en tiempo real
-      socket.on("ordersUpdated", (data) => {
-        const pendingOrders = data.some(
-          (order) =>
-            order.user === session?.user._id &&
-            order.paid === true &&
-            order.status !== "Entregado"
-        );
-
-        const pendingOrdersKitchen = data.some(
-          (order) => order.paid === true && order.status === "Pendiente"
-        );
-
-        setHasUnfinishedOrders(pendingOrders);
-        setHasUnfinishedOrdersKitchen(pendingOrdersKitchen);
-      });
-
-      return () => {
-        socket.off("orders");
-        socket.off("ordersUpdated");
-      };
+      const res = await axios.get("/api/order");
+      const { data } = res;
+      const pendingOrders = data.some(
+        (order) =>
+          order.user === session?.user._id &&
+          order.paid === true &&
+          order.status !== "Entregado"
+      );
+      const pendingOrdersKitchen = data.some(
+        (order) => order.paid === true && order.status === "Pendiente"
+      );
+      setHasUnfinishedOrders(pendingOrders);
+      setHasUnfinishedOrdersKitchen(pendingOrdersKitchen);
     } catch (error) {
       console.error("Error al obtener pedidos pendientes:", error);
     }
@@ -90,9 +63,13 @@ export default function App() {
 
   // useEffect para ejecutar fetchUnfinishedOrders()
   useEffect(() => {
-    if (status === "authenticated") {
-      fetchUnfinishedOrders();
-    }
+    const intervalId = setInterval(() => {
+      if (status === "authenticated") {
+        fetchUnfinishedOrders();
+      }
+    }, 5000);
+
+    return () => clearInterval(intervalId);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [status]);
 

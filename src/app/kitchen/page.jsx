@@ -4,7 +4,6 @@ import { Spinner } from "@nextui-org/react";
 import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { socket } from "@/utils/socket";
 import CardOrderKitchen from "@/components/CardOrderKitchen";
 
 const KitchenPage = () => {
@@ -18,32 +17,14 @@ const KitchenPage = () => {
   // Función para consultar las ordenes del usuario registrado
   async function getOrders() {
     try {
-      socket.emit("getOrders");
+      const res = await axios.get("/api/order");
+      const { data } = res;
+      const orderData = data.filter(
+        (order) => order.paid === true && order.status === "Pendiente"
+      );
 
-      // Escucha el evento 'orders' para recibir las órdenes iniciales
-      socket.on("orders", (data) => {
-        const orderData = data.filter(
-          (order) => order.paid === true && order.status === "Pendiente"
-        );
-        setOrders(orderData);
-        setLoanding(false);
-      });
-
-      // Escucha el evento 'ordersUpdated' para recibir actualizaciones en tiempo real
-      socket.on("ordersUpdated", (data) => {
-        const orderData = data.filter(
-          (order) => order.paid === true && order.status === "Pendiente"
-        );
-        setOrders(orderData);
-        setLoanding(false);
-      });
-
-      // Limpiar los oyentes cuando el componente se desmonte
-      return () => {
-        socket.off("orders");
-        socket.off("ordersUpdated");
-        setLoanding(false);
-      };
+      setOrders(orderData);
+      setLoanding(false);
     } catch (error) {
       console.log(error.message);
       setLoanding(false);
@@ -53,7 +34,13 @@ const KitchenPage = () => {
   // useEffect para ejecutar getOrders()
   useEffect(() => {
     if (status === "authenticated" && session?.user.admin) {
-      getOrders();
+      const intervalId = setInterval(() => {
+        if (status === "authenticated" && session?.user.admin) {
+          getOrders();
+        }
+      }, 5000);
+
+      return () => clearInterval(intervalId);
     } else if (status === "unauthenticated" && !session?.user.admin) {
       return router.push("/");
     }

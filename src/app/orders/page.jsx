@@ -3,7 +3,6 @@
 import CardOrder from "@/components/CardOrder";
 import { ChevronDownIcon } from "@/components/icons/ChevronDownIcon";
 import { capitalize } from "@/utils/capitalize";
-import { socket } from "@/utils/socket";
 import {
   Button,
   Divider,
@@ -69,29 +68,13 @@ const OrderPage = () => {
   // Función para consultar las ordenes del usuario registrado
   async function getOrders() {
     try {
-      socket.emit("getOrders");
-
-      socket.on("orders", (data) => {
-        const orderData = data.filter(
-          (order) => order.user === session?.user._id && order.paid === true
-        );
-        setOrders(orderData);
-        setLoadingOrderData(false);
-      });
-
-      socket.on("ordersUpdated", (data) => {
-        const orderData = data.filter(
-          (order) => order.user === session?.user._id && order.paid === true
-        );
-        setOrders(orderData);
-        setLoadingOrderData(false);
-      });
-
-      return () => {
-        socket.off("orders");
-        socket.off("ordersUpdated");
-        setLoadingOrderData(false);
-      };
+      const res = await axios.get("/api/order");
+      const { data } = res;
+      const orderData = data.filter(
+        (order) => order.user === session?.user._id && order.paid === true
+      );
+      setOrders(orderData);
+      setLoadingOrderData(false);
     } catch (error) {
       console.log(error.message);
     }

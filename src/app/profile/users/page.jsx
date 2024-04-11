@@ -26,7 +26,6 @@ import {
   Input,
   Link,
 } from "@nextui-org/react";
-import { socket } from "@/utils/socket";
 
 const UserPage = () => {
   const [users, setUsers] = useState([]);
@@ -275,32 +274,30 @@ const UserPage = () => {
 
   // useEffect para consultar los usuarios
   useEffect(() => {
-    if (status === "authenticated") {
-      if (session?.user.admin) {
-        socket.emit("getUsers");
-
-        socket.on("users", (data) => {
-          setUsers(data);
-          setLoading(false);
-        });
-
-        socket.on("usersUpdated", (data) => {
-          setUsers(data);
-          setLoading(false);
-        });
-
-        return () => {
-          socket.off("users");
-          socket.off("usersUpdated");
-          setLoading(false);
-        };
-      } else {
+    const fetchData = () => {
+      if (status === "authenticated") {
+        if (session?.user.admin) {
+          fetch("/api/profile/users").then((res) => {
+            res.json().then((data) => {
+              setUsers(data);
+              setLoading(false);
+            });
+          });
+        } else {
+          return router.push("/");
+        }
+      } else if (status === "unauthenticated") {
         return router.push("/");
       }
-    } else if (status === "unauthenticated") {
-      return router.push("/");
-    }
-  }, [router, session?.user.admin, status]);
+    };
+
+    // Ejecutar fetchData inicialmente y luego cada 5 segundos
+    fetchData();
+    const interval = setInterval(fetchData, 5000);
+
+    // Limpieza del intervalo cuando el componente se desmonta
+    return () => clearInterval(interval);
+  }, [session?.user.admin, status]);
 
   return (
     <>
