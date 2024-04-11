@@ -64,13 +64,17 @@ export default function App() {
 
   // useEffect para ejecutar fetchUnfinishedOrders()
   useEffect(() => {
-    const intervalId = setInterval(() => {
-      if (status === "authenticated") {
+    if (status === "authenticated") {
+      const fetchOrders = () => {
         fetchUnfinishedOrders();
-      }
-    }, 5000);
+      };
 
-    return () => clearInterval(intervalId);
+      fetchOrders();
+
+      const intervalId = setInterval(fetchOrders, 5000);
+
+      return () => clearInterval(intervalId);
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [status]);
 

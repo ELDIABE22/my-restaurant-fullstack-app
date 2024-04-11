@@ -35,11 +35,13 @@ const KitchenPage = () => {
   // useEffect para ejecutar getOrders()
   useEffect(() => {
     if (status === "authenticated" && session?.user.admin) {
-      const intervalId = setInterval(() => {
-        if (status === "authenticated" && session?.user.admin) {
-          getOrders();
-        }
-      }, 5000);
+      const fetchOrders = () => {
+        getOrders();
+      };
+
+      fetchOrders();
+
+      const intervalId = setInterval(fetchOrders, 5000);
 
       return () => clearInterval(intervalId);
     } else if (status === "unauthenticated" && !session?.user.admin) {

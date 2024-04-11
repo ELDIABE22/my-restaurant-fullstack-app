@@ -196,11 +196,15 @@ const ProfileOrdersPage = () => {
 
   // useEffect para ejecutar getOrderAndUsers()
   useEffect(() => {
-    const interval = setInterval(() => {
+    const fetchOrders = () => {
       getOrderAndUsers();
-    }, 5000);
+    };
 
-    return () => clearInterval(interval);
+    fetchOrders();
+
+    const intervalId = setInterval(fetchOrders, 5000);
+
+    return () => clearInterval(intervalId);
   }, []);
 
   // Definición de las columnas de encabezado de la tabla, especificando la clave y la etiqueta para cada columna.
