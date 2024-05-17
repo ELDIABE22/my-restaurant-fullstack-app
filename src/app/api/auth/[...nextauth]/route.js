@@ -1,16 +1,10 @@
-import { connectDB } from "@/database/mongodb"
-import CredentialsProvider from "next-auth/providers/credentials"
-import GoogleProvider from "next-auth/providers/google";
-import NextAuth from "next-auth"
-import User from "@/models/User"
+import { sql } from "@/database/mysql"
 import bcrypt from "bcrypt"
+import NextAuth from "next-auth"
+import CredentialsProvider from "next-auth/providers/credentials"
 
 export const authOptions = {
     providers: [
-        GoogleProvider({
-            clientId: process.env.GOOGLE_CLIENT_ID,
-            clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-        }),
         CredentialsProvider({
             name: 'Credentials',
             credentials: {
@@ -19,17 +13,20 @@ export const authOptions = {
             },
             async authorize(credentials, req) {
                 try {
-                    await connectDB();
+                    // CONSULTA SENCILLA
+                    const [userFound] = await sql.query(`
+                        SELECT * 
+                        FROM Usuario 
+                        WHERE correo = ?
+                    `, [credentials?.correo]);
 
-                    const userEncontrado = await User.findOne({ correo: credentials?.correo }).select("+contraseña");
+                    if (userFound.length === 0) throw new Error("El correo no existe!");
 
-                    if (!userEncontrado) throw new Error("El correo no existe!");
+                    const comparePassword = await bcrypt.compare(credentials?.contraseña, userFound[0].contraseña);
 
-                    const contraseñaCompare = await bcrypt.compare(credentials?.contraseña, userEncontrado.contraseña);
+                    if (!comparePassword) throw new Error('Contraseña incorrecta!');
 
-                    if (!contraseñaCompare) throw new Error('Contraseña incorrecta!');
-
-                    return userEncontrado;
+                    return userFound[0];
                 } catch (error) {
                     console.error('Error en la autorización:', error.message);
                     throw new Error(error.message);

@@ -1,13 +1,13 @@
 "use client";
 
-import { useSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
-import { Button, Input, Spinner } from "@nextui-org/react";
-import { categorySchema } from "@/utils/validationSchema";
-import { useEffect, useState } from "react";
-import CategoryTable from "@/components/CategoryTable";
 import toast from "react-hot-toast";
 import axios from "axios";
+import CategoryTable from "@/components/CategoryTable";
+import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
+import { categorySchema } from "@/utils/validationSchema";
+import { useEffect, useState } from "react";
+import { Button, Input, Spinner } from "@nextui-org/react";
 
 const Categories = () => {
   const [name, setName] = useState("");

@@ -7,8 +7,6 @@ import { signIn } from "next-auth/react";
 import { useState } from "react";
 import { MailIcon } from "./icons/MailIcon";
 import { useRouter } from "next/navigation";
-
-import { GoogleIcon } from "./icons/GoogleIcon";
 import { EyeFilledIcon } from "./icons/EyeFilledIcon";
 import { registerSchema } from "@/utils/validationSchema.js";
 import { EyeSlashFilledIcon } from "./icons/EyeSlashFilledIcon";
@@ -18,6 +16,9 @@ import UserIcon from "./icons/UserIcon";
 const FormRegister = () => {
   const [nombreCompleto, setNombreCompleto] = useState("");
   const [correo, setCorreo] = useState("");
+  const [telefono, setTelefono] = useState("");
+  const [ciudad, setCiudad] = useState("");
+  const [direccion, setDireccion] = useState("");
   const [contraseña, setContraseña] = useState("");
   const [error, setError] = useState(null);
   const [creatingUserLoading, setCreatingUserLoading] = useState(false);
@@ -30,10 +31,14 @@ const FormRegister = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setCreatingUserLoading(true);
+
     try {
       const data = registerSchema.parse({
         nombreCompleto,
         correo,
+        telefono,
+        ciudad,
+        direccion,
         contraseña,
       });
 
@@ -80,6 +85,7 @@ const FormRegister = () => {
             onValueChange={setNombreCompleto}
             isInvalid={error?.some((error) => error.name)}
             errorMessage={error?.find((error) => error.name)?.name}
+            className="text-white"
             endContent={
               <UserIcon className="text-2xl text-default-400 pointer-events-none flex-shrink-0" />
             }
@@ -94,10 +100,52 @@ const FormRegister = () => {
             onValueChange={setCorreo}
             isInvalid={error?.some((error) => error.email)}
             errorMessage={error?.find((error) => error.email)?.email}
+            className="text-white"
             endContent={
               <MailIcon className="text-2xl text-default-400 pointer-events-none flex-shrink-0" />
             }
           />
+          <Input
+            type="number"
+            label="Teléfono"
+            color="warning"
+            variant="bordered"
+            autoComplete="off"
+            isClearable
+            value={telefono}
+            onValueChange={setTelefono}
+            isInvalid={error?.some((error) => error.phone)}
+            errorMessage={error?.find((error) => error.phone)?.phone}
+            className="text-white"
+          />
+          <div className="flex gap-3">
+            <Input
+              type="text"
+              label="Ciudad"
+              color="warning"
+              variant="bordered"
+              autoComplete="off"
+              isClearable
+              value={ciudad}
+              onValueChange={setCiudad}
+              isInvalid={error?.some((error) => error.city)}
+              errorMessage={error?.find((error) => error.city)?.city}
+              className="text-white"
+            />
+            <Input
+              type="text"
+              label="Dirección"
+              color="warning"
+              variant="bordered"
+              autoComplete="off"
+              isClearable
+              value={direccion}
+              onValueChange={setDireccion}
+              isInvalid={error?.some((error) => error.address)}
+              errorMessage={error?.find((error) => error.address)?.address}
+              className="text-white"
+            />
+          </div>
           <Input
             type={isVisible ? "text" : "password"}
             label="Contraseña"
@@ -108,6 +156,7 @@ const FormRegister = () => {
             onValueChange={setContraseña}
             isInvalid={error?.some((error) => error.password)}
             errorMessage={error?.find((error) => error.password)?.password}
+            className="text-white"
             endContent={
               <button
                 className="focus:outline-none"
@@ -132,20 +181,10 @@ const FormRegister = () => {
             isLoading={creatingUserLoading}
             className="text-[15px] w-full"
           >
-            <p className="text-white tracking-widest font-bold hover:scale-110 transform transition-transform duration-[0.2s] ease-in-out">
+            <p className="text-white w-full tracking-widest font-bold hover:scale-110 transform transition-transform duration-[0.2s] ease-in-out">
               {creatingUserLoading ? "Registrando..." : "Registrar"}
             </p>
           </Button>
-          {/* <button
-            type="button"
-            onClick={() => signIn("google", { callbackUrl: "/menu" })}
-            className="flex justify-center gap-3 bg-white lg:mb-[5px] lg:mr-[10px] lg:ml-[10px] p-[14px] rounded-2xl cursor-pointer border"
-          >
-            <GoogleIcon />
-            <p className="font-bold text-[15px] hover:scale-105 transform transition-transform duration-[0.2s] ease-in-out">
-              Continuar con Google
-            </p>
-          </button> */}
         </div>
       </div>
     </form>

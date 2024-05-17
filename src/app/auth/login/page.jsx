@@ -25,15 +25,15 @@ const IniciarSesion = () => {
       ) : (
         <>
           <div className="flex flex-col md:flex-row w-full h-screen">
-            <div className="h-screen w-full flex items-center sm:items-none bg-fondo-comida-3 md:bg-none md:bg-[#f4f3f2] md:w-2/4 sm:p-10 md:p-5">
-              <div className="w-full bg-[#f4f3f2] flex flex-col justify-center p-3 md:p-0 rounded">
+            <div className="h-screen w-full flex items-center sm:items-none bg-fondo-comida-3 md:bg-none md:bg-black md:w-2/4 sm:p-10 md:p-5">
+              <div className="w-full bg-black flex flex-col justify-center p-3 md:p-0 rounded">
                 <h1 className="text-4xl font-bold p-7 text-orange-peel">
                   Accede a tu cuenta
                 </h1>
 
                 <FormLogin onOpen={onOpen} />
 
-                <p className="text-center text-[#706967] text-xs flex justify-center gap-1">
+                <p className="text-center text-[#f4f3f2] text-xs flex justify-center gap-1">
                   Aún no tienes cuenta?{" "}
                   <Link
                     href={"/auth/register"}

@@ -18,6 +18,7 @@
     "framer-motion": "^10.17.12",
     "haversine": "^1.1.1",
     "mongoose": "^8.0.3",
+    "mysql2": "^3.9.7",
     "next": "^14.0.4",
     "next-auth": "^4.24.5",
     "nodemailer": "^6.9.13",

@@ -15,6 +15,7 @@ import {
   Link,
   Button,
   Badge,
+  Spinner,
 } from "@nextui-org/react";
 import axios from "axios";
 
@@ -52,11 +53,16 @@ export default function App() {
           order.paid === true &&
           order.status !== "Entregado"
       );
-      const pendingOrdersKitchen = data.some(
-        (order) => order.paid === true && order.status === "Pendiente"
-      );
+
+      if (session?.user.admin === 1) {
+        const pendingOrdersKitchen = data.some(
+          (order) => order.paid === true && order.status === "Pendiente"
+        );
+
+        setHasUnfinishedOrdersKitchen(pendingOrdersKitchen);
+      }
+
       setHasUnfinishedOrders(pendingOrders);
-      setHasUnfinishedOrdersKitchen(pendingOrdersKitchen);
     } catch (error) {
       console.error("Error al obtener pedidos pendientes:", error);
     }
@@ -151,7 +157,7 @@ export default function App() {
             </NavbarItem>
           </Badge>
         )}
-        {status === "authenticated" && session?.user.admin === true && (
+        {status === "authenticated" && session?.user.admin === 1 && (
           <Badge
             content="!"
             color="warning"
@@ -173,6 +179,7 @@ export default function App() {
           </Badge>
         )}
       </NavbarContent>
+      {status === "loading" && <Spinner color="warning" />}
 
       {status === "unauthenticated" && (
         <NavbarContent justify="end">
@@ -316,7 +323,7 @@ export default function App() {
               </NavbarItem>
             </Badge>
           )}
-          {status === "authenticated" && session?.user.admin === true && (
+          {status === "authenticated" && session?.user.admin === 1 && (
             <Badge
               content="!"
               color="warning"

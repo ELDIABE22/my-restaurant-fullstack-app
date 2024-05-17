@@ -1,13 +1,12 @@
-import { Button } from "@nextui-org/react";
 import { Input } from "@nextui-org/react";
+import { Button } from "@nextui-org/react";
 import { signIn } from "next-auth/react";
+import { useState } from "react";
 import { MailIcon } from "./icons/MailIcon";
-import { GoogleIcon } from "./icons/GoogleIcon";
 import { loginSchema } from "@/utils/validationSchema";
 import { EyeFilledIcon } from "./icons/EyeFilledIcon";
 import { EyeSlashFilledIcon } from "./icons/EyeSlashFilledIcon";
 import toast from "react-hot-toast";
-import { useState } from "react";
 
 const FormLogin = ({ onOpen }) => {
   const [correo, setCorreo] = useState("");
@@ -72,6 +71,7 @@ const FormLogin = ({ onOpen }) => {
             endContent={
               <MailIcon className="text-2xl text-default-400 pointer-events-none flex-shrink-0" />
             }
+            className="text-white"
           />
           <Input
             type={isVisible ? "text" : "password"}
@@ -83,6 +83,7 @@ const FormLogin = ({ onOpen }) => {
             onValueChange={setContraseña}
             isInvalid={error?.some((error) => error.password)}
             errorMessage={error?.find((error) => error.password)?.password}
+            className="text-white"
             endContent={
               <button
                 className="focus:outline-none"
@@ -115,20 +116,10 @@ const FormLogin = ({ onOpen }) => {
             isLoading={sesionLoading}
             className="text-[15px] w-full"
           >
-            <p className="text-white tracking-widest font-bold hover:scale-110 transform transition-transform duration-[0.2s] ease-in-out">
+            <p className="text-white w-full tracking-widest font-bold hover:scale-110 transform transition-transform duration-[0.2s] ease-in-out">
               {sesionLoading ? "Ingresando..." : "Ingresar"}
             </p>
           </Button>
-          {/* <button
-            type="button"
-            onClick={() => signIn("google", { callbackUrl: "/menu" })}
-            className="flex justify-center gap-3 bg-white lg:mb-[5px] lg:mr-[10px] lg:ml-[10px] p-[14px] rounded-2xl cursor-pointer border"
-          >
-            <GoogleIcon />
-            <p className="font-bold text-[15px] hover:scale-105 transform transition-transform duration-[0.2s] ease-in-out">
-              Continuar con Google
-            </p>
-          </button> */}
         </div>
       </div>
     </form>

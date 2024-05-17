@@ -1,15 +1,16 @@
 "use client";
 
-import { usePathname } from "next/navigation";
 import { Tab, Tabs } from "@nextui-org/react";
 import { useSession } from "next-auth/react";
+import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 
 const NavbarProfile = () => {
-  const { data: session } = useSession();
-  const pathname = usePathname();
-
   const [activeTab, setActiveTab] = useState("perfil");
+
+  const { data: session } = useSession();
+
+  const pathname = usePathname();
 
   // Actualizar el tab activo basado en la ruta actual
   useEffect(() => {
@@ -44,7 +45,7 @@ const NavbarProfile = () => {
 
   return (
     <>
-      {session?.user?.admin ? (
+      {session?.user.admin === 1 ? (
         <nav className="text-center my-6">
           <Tabs
             aria-label="Options"

@@ -26,16 +26,16 @@ const Profile = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setUpdatingInfo(true);
+
     try {
-      profileSchema.parse({
+      const data = profileSchema.parse({
         nombreCompleto,
         telefono,
         ciudad,
+        direccion,
       });
 
       setError(null);
-
-      const data = { nombreCompleto, telefono, ciudad, direccion };
 
       const res = await axios.put("/api/profile", data);
 
@@ -88,6 +88,7 @@ const Profile = () => {
         >
           <Input
             type="text"
+            isDisabled={updatingInfo}
             label="Nombre Completo"
             color="warning"
             variant="bordered"
@@ -110,6 +111,7 @@ const Profile = () => {
           />
           <Input
             type="number"
+            isDisabled={updatingInfo}
             label="Teléfono"
             color="warning"
             variant="bordered"
@@ -123,6 +125,7 @@ const Profile = () => {
           <div className="flex gap-3">
             <Input
               type="text"
+              isDisabled={updatingInfo}
               label="Ciudad"
               color="warning"
               variant="bordered"
@@ -135,6 +138,7 @@ const Profile = () => {
             />
             <Input
               type="text"
+              isDisabled={updatingInfo}
               label="Dirección"
               color="warning"
               variant="bordered"
@@ -142,14 +146,14 @@ const Profile = () => {
               isClearable
               value={direccion}
               onValueChange={setDireccion}
+              isInvalid={error?.some((error) => error.address)}
+              errorMessage={error?.find((error) => error.address)?.address}
             />
           </div>
-          {admin ? (
+          {admin === 1 && (
             <Checkbox defaultSelected={admin} color="warning" isDisabled>
               Admin
             </Checkbox>
-          ) : (
-            ""
           )}
           <Button
             type="submit"
@@ -158,7 +162,7 @@ const Profile = () => {
             variant="shadow"
             isLoading={updatingInfo}
           >
-            <p className="text-white tracking-widest font-bold hover:scale-110 transform transition-transform duration-[0.2s] ease-in-out">
+            <p className="text-white w-full tracking-widest font-bold hover:scale-110 transform transition-transform duration-[0.2s] ease-in-out">
               {updatingInfo ? "Guardando..." : "Guardar"}
             </p>
           </Button>

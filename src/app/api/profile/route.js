@@ -1,30 +1,43 @@
-import { connectDB } from "@/database/mongodb";
+import { sql } from "@/database/mysql";
 import { authOptions } from "../auth/[...nextauth]/route";
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
-import User from "@/models/User";
 
 export async function PUT(req) {
     try {
-        await connectDB();
-
-        const dataToUpdate = await req.json();
+        const { nombreCompleto, telefono, ciudad, direccion } = await req.json();
 
         const { user } = await getServerSession(authOptions);
 
-        const validateUser = await User.findOne({ telefono: dataToUpdate.telefono });
+        // CONSULTA SENCILLA
+        const [validateUser] = await sql.query(`
+            SELECT *
+            FROM Usuario
+            WHERE telefono = ?
+        `, [telefono]);
 
-        if (validateUser) {
-            const validatePhone = validateUser._id == user._id;
+        if (validateUser.length > 0) {
+            const validatePhone = validateUser[0].id === user.id;
 
             if (!validatePhone) return NextResponse.json({ message: "El teléfono ya existe!" });
         }
 
-        await User.updateOne({ correo: user.correo }, dataToUpdate);
+        const values = [nombreCompleto, telefono, ciudad, direccion, user.correo];
 
-        const updatedUser = await User.findOne({ correo: user.correo });
+        await sql.query(`
+            UPDATE Usuario
+            SET nombreCompleto = ?, telefono = ?, ciudad = ?, direccion = ?
+            WHERE correo = ?
+        `, values);
 
-        return NextResponse.json({ message: "Usuario actualizado exitosamente", updatedUser });
+        // CONSULTA SENCILLA
+        const [updatedUser] = await sql.query(`
+            SELECT *
+            FROM Usuario
+            WHERE correo = ?
+        `, [user.correo]);
+
+        return NextResponse.json({ message: "Usuario actualizado exitosamente", updatedUser: updatedUser[0] });
 
     } catch (error) {
         return NextResponse.json({ message: "Error, inténtalo más tarde", error: error.message });
@@ -33,13 +46,16 @@ export async function PUT(req) {
 
 export async function GET() {
     try {
-        await connectDB();
-
         const { user } = await getServerSession(authOptions);
 
-        const dataUser = await User.findOne({ correo: user.correo });
+        // CONSULTA SENCILLA
+        const [dataUser] = await sql.query(`
+            SELECT *
+            FROM Usuario
+            WHERE correo = ?
+        `, [user.correo]);
 
-        return NextResponse.json(dataUser);
+        return NextResponse.json(dataUser[0]);
     } catch (error) {
         return NextResponse.json({ message: "Error, inténtalo más tarde", error: error.message });
     }
