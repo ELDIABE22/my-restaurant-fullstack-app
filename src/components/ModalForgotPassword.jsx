@@ -17,7 +17,11 @@ const ModalForgotPassword = ({ isOpen, onOpenChange }) => {
   const [email, setEmail] = useState("");
   const [error, setError] = useState(null);
 
+  const [sendingMail, setSendingMail] = useState(false);
+
   async function handleSubmit(onClose) {
+    setSendingMail(true);
+
     try {
       const validateEmail = correoForgotPasswordSchema.parse({ correo: email });
 
@@ -47,9 +51,11 @@ const ModalForgotPassword = ({ isOpen, onOpenChange }) => {
       });
 
       onClose();
+      setSendingMail(false);
     } catch (error) {
       const errors = error?.errors?.map((error) => error.message);
       setError(errors);
+      setSendingMail(false);
     }
   }
 
@@ -72,6 +78,7 @@ const ModalForgotPassword = ({ isOpen, onOpenChange }) => {
             <Divider />
             <ModalBody>
               <Input
+                isDisabled={sendingMail}
                 autoFocus
                 isClearable
                 label="Correo"
@@ -85,10 +92,19 @@ const ModalForgotPassword = ({ isOpen, onOpenChange }) => {
             </ModalBody>
             <Divider />
             <ModalFooter>
-              <Button color="danger" variant="flat" onPress={onClose}>
+              <Button
+                color="danger"
+                isDisabled={sendingMail}
+                variant="flat"
+                onPress={onClose}
+              >
                 Cancelar
               </Button>
-              <Button onPress={() => handleSubmit(onClose)} color="warning">
+              <Button
+                onPress={() => handleSubmit(onClose)}
+                isLoading={sendingMail}
+                color="warning"
+              >
                 Enviar
               </Button>
             </ModalFooter>

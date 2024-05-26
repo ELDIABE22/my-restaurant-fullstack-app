@@ -25,22 +25,24 @@ const menuItems = () => {
       const menuItems = res.data;
 
       const categoryPromises = menuItems.map(async (item) => {
-        const categoryId = item.category;
+        const categoryId = item.categoriaId;
         const categoryRes = await axios.get(`/api/category/${categoryId}`);
         return categoryRes.data;
       });
 
       const categoriesData = await Promise.all(categoryPromises);
 
+      const flatCategoriesData = categoriesData.flat();
+
       const itemsWithCategoryName = menuItems.map((item, index) => {
         return {
           ...item,
-          category: categoriesData[index].name,
+          categoriaId: flatCategoriesData[index].nombre,
         };
       });
 
       const categoriesSet = new Set(
-        itemsWithCategoryName.map((cat) => cat.category)
+        itemsWithCategoryName.map((cat) => cat.categoriaId)
       );
       const categories = Array.from(categoriesSet).sort();
 
@@ -54,7 +56,7 @@ const menuItems = () => {
 
   useEffect(() => {
     if (status === "authenticated") {
-      if (session?.user.admin) {
+      if (session?.user.admin === 1) {
         fetchDataMenuItems();
       } else {
         return router.push("/");
@@ -98,15 +100,15 @@ const menuItems = () => {
                     <div className="flex gap-3 justify-center items-center flex-wrap">
                       {items.map(
                         (item) =>
-                          item.category === cat && (
-                            <CardMenuItem key={item._id} item={item} />
+                          item.categoriaId === cat && (
+                            <CardMenuItem key={item.id} item={item} />
                           )
                       )}
                     </div>
                   </div>
                 ))
               ) : (
-                <div>No tienes elementos.</div>
+                <div className="font-bold text-2xl">No tienes elementos.</div>
               )}
             </div>
           )}

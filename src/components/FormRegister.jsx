@@ -76,6 +76,7 @@ const FormRegister = () => {
       <div className="flex flex-col gap-3 lg:p-7 mb-5 lg:mb-0">
         <div className="flex flex-col w-full mb-6 md:mb-0 gap-4">
           <Input
+            isDisabled={creatingUserLoading}
             type="text"
             label="Nombre Completo"
             color="warning"
@@ -91,6 +92,7 @@ const FormRegister = () => {
             }
           />
           <Input
+            isDisabled={creatingUserLoading}
             type="email"
             label="Email"
             color="warning"
@@ -106,6 +108,7 @@ const FormRegister = () => {
             }
           />
           <Input
+            isDisabled={creatingUserLoading}
             type="number"
             label="Teléfono"
             color="warning"
@@ -120,6 +123,7 @@ const FormRegister = () => {
           />
           <div className="flex gap-3">
             <Input
+              isDisabled={creatingUserLoading}
               type="text"
               label="Ciudad"
               color="warning"
@@ -133,6 +137,7 @@ const FormRegister = () => {
               className="text-white"
             />
             <Input
+              isDisabled={creatingUserLoading}
               type="text"
               label="Dirección"
               color="warning"
@@ -147,6 +152,7 @@ const FormRegister = () => {
             />
           </div>
           <Input
+            isDisabled={creatingUserLoading}
             type={isVisible ? "text" : "password"}
             label="Contraseña"
             color="warning"

@@ -1,26 +1,45 @@
-import { connectDB } from "@/database/mongodb";
-import Order from "@/models/Order";
+import { sql } from "@/database/mysql";
 import { NextResponse } from "next/server";
 
-export async function DELETE(res, { params }) {
+export async function GET(res, { params }) {
     try {
-        await connectDB();
+        const [order] = await sql.query(`
+            SELECT 
+                o.id AS ordenId, 
+                o.usuarioId, 
+                o.metodo_pago, 
+                o.metodo_entrega, 
+                o.direccion_envio, 
+                o.ciudad_envio, 
+                o.detalles_adicionales, 
+                o.numero_mesa, 
+                o.total, 
+                o.pagado, 
+                o.estado, 
+                o.fecha_creado, 
+                o.fecha_actualizado,
+                op.id AS ordenPlatoId,
+                op.nombre AS platoNombre,
+                op.cantidad AS platoCantidad,
+                opa.id AS adicionalId,
+                opa.nombre AS adicionalNombre,
+                opa.cantidad AS adicionalCantidad
+            FROM 
+                Orden o
+            LEFT JOIN 
+                Orden_Plato op ON o.id = op.ordenId
+            LEFT JOIN 
+                orden_plato_adicional opa ON op.id = opa.orden_platoId
+            WHERE 
+                o.usuarioId = ? 
+                AND o.pagado = 1
+                AND o.estado != 'Cancelado'
+            ORDER BY 
+                o.id, op.id, opa.id
+        `, [params.id]);
 
-        const orderDelete = await Order.findById(params.id);
-
-        if (orderDelete) {
-            if (orderDelete.status === "Pendiente") {
-                await Order.findByIdAndDelete(params.id);
-            } else if (orderDelete.status === "En camino") {
-                return NextResponse.json({ message: "No puedes cancelar el pedido, ya va en camino" });
-            }
-        } else {
-            return NextResponse.json({ message: "Error, intenta más tarde" });
-        }
-
-        return NextResponse.json({ message: "Pedido cancelado" });
+        return NextResponse.json(order);
     } catch (error) {
-        return NextResponse.json({ message: "Error al cancelar el pedido" + error.message });
-
+        return NextResponse.json({ message: 'Error al consultar los pedidos! ' + error });
     }
 }

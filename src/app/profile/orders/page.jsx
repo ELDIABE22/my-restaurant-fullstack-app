@@ -60,55 +60,67 @@ const ProfileOrdersPage = () => {
   const router = useRouter();
 
   // Función para consultar los pedidos
-  async function getOrderAndUsers() {
+  const getOrderAndUsers = async () => {
     try {
-      const resOrder = await axios.get("/api/order");
-      const filteredOrders = resOrder.data.filter((order) => order.paid); // Filtrar solo los pedidos pagados
-      const ordersWithUsers = await Promise.all(
-        filteredOrders.map(async (order) => {
-          let userId = order.user;
-          let registeredUser, unregisteredUser;
+      const res = await axios.get("/api/profile/orders");
+      const { data } = res;
 
-          try {
-            // Buscar el usuario en los usuarios registrados
-            const resRegisteredUser = await axios.get(`/api/profile/users`);
-            registeredUser = resRegisteredUser.data.find(
-              (user) => user._id === userId
-            );
-          } catch (error) {
-            console.error("Error al buscar el usuario registrado:", error);
+      const orders = [];
+      const ordersMap = new Map();
+
+      data.forEach((row) => {
+        if (!ordersMap.has(row.ordenId)) {
+          const order = {
+            id: row.ordenId,
+            usuarioId: row.usuarioId,
+            usuarioNombre: row.usuarioNombre,
+            metodo_pago: row.metodo_pago,
+            metodo_entrega: row.metodo_entrega,
+            direccion_envio: row.direccion_envio,
+            ciudad_envio: row.ciudad_envio,
+            detalles_adicionales: row.detalles_adicionales,
+            numero_mesa: row.numero_mesa,
+            total: row.total,
+            pagado: row.pagado,
+            estado: row.estado,
+            fecha_creado: row.fecha_creado,
+            fecha_actualizado: row.fecha_actualizado,
+            platos: [],
+          };
+          orders.push(order);
+          ordersMap.set(row.ordenId, order);
+        }
+
+        const order = ordersMap.get(row.ordenId);
+
+        if (row.ordenPlatoId) {
+          let plato = order.platos.find((p) => p.id === row.ordenPlatoId);
+          if (!plato) {
+            plato = {
+              id: row.ordenPlatoId,
+              nombre: row.platoNombre,
+              cantidad: row.platoCantidad,
+              adicionales: [],
+            };
+            order.platos.push(plato);
           }
 
-          if (!registeredUser) {
-            try {
-              // Si no se encuentra el usuario en los registrados, buscamos en los no registrados
-              const resUnregisteredUser = await axios.get(
-                `/api/profile/users-unregistered`
-              );
-              unregisteredUser = resUnregisteredUser.data.find(
-                (user) => user._id === userId
-              );
-            } catch (error) {
-              console.error("Error al buscar el usuario no registrado:", error);
-            }
+          if (row.adicionalId) {
+            plato.adicionales.push({
+              id: row.adicionalId,
+              nombre: row.adicionalNombre,
+              cantidad: row.adicionalCantidad,
+            });
           }
+        }
+      });
 
-          if (registeredUser) {
-            return { ...order, user: { name: registeredUser.nombreCompleto } };
-          } else if (unregisteredUser) {
-            return { ...order, user: { name: unregisteredUser.name } };
-          } else {
-            return order; // Mantenemos el ID de usuario si no se encuentra en ninguna lista
-          }
-        })
-      );
-
-      setOrders(ordersWithUsers);
+      setOrders(orders);
       setLoading(false);
     } catch (error) {
       console.error("Error al obtener pedidos y usuarios:", error);
     }
-  }
+  };
 
   // Función para abrir ModalOrderDatails
   const handleOpenModal = (order) => {
@@ -128,52 +140,53 @@ const ProfileOrdersPage = () => {
     setSelectedOrder(order);
   };
 
-  // Función para eliminar pedido
-  async function handleDelete(idDelete) {
+  // Función para cancelar pedido
+  const handleDelete = async (idDelete) => {
     try {
       const promise = new Promise(async (resolve, reject) => {
-        const res = await axios.delete(`/api/order?_id=${idDelete}`);
+        const res = await axios.put("/api/order", { idDelete });
 
         const { message } = res.data;
 
-        if (message === "Pedido eliminado") {
-          resolve();
+        if (message === "Pedido cancelado") {
+          resolve(message);
           getOrderAndUsers();
         } else {
-          reject();
+          reject(new Error(message));
         }
 
         setIdDelete(null);
       });
 
       await toast.promise(promise, {
-        loading: "Eliminando...",
-        success: "Pedido eliminado",
-        error: "Error al eliminar el pedido!",
+        loading: "Cancelando...",
+        success: (message) => message,
+        error: (err) => err.message,
       });
       setOpenModalConfirmDelete(false);
     } catch (error) {
-      console.error("Error al eliminar el pedido: ", error);
+      console.error("Error al cancelar el pedido: ", error);
       setOpenModalConfirmDelete(false);
     }
-  }
+  };
 
   // Función para actualizar estado del pedido
-  async function handleUpdate(idUpdate, status, deliveryMethod) {
+  const handleUpdate = async (idUpdate, status, deliveryMethod) => {
     try {
       const promise = new Promise(async (resolve, reject) => {
         const updateData = {
-          _id: idUpdate,
+          id: idUpdate,
           status: status,
           deliveryMethod: deliveryMethod,
         };
 
-        const res = await axios.put("/api/order", updateData);
+        const res = await axios.put("/api/profile/orders", updateData);
 
         const { message } = res.data;
 
         if (message === "Estado del pedido actualizado") {
           resolve();
+          getOrderAndUsers();
         } else {
           reject();
         }
@@ -192,7 +205,7 @@ const ProfileOrdersPage = () => {
       console.log(error);
       setOpenModalUpdateOrderStatus(false);
     }
-  }
+  };
 
   // useEffect para ejecutar getOrderAndUsers()
   useEffect(() => {
@@ -250,7 +263,7 @@ const ProfileOrdersPage = () => {
 
     if (hasSearchFilter) {
       filteredUsers = filteredUsers.filter((or) =>
-        or.user.name.toLowerCase().includes(filterValue.toLowerCase())
+        or.usuarioNombre.toLowerCase().includes(filterValue.toLowerCase())
       );
     }
 
@@ -259,7 +272,7 @@ const ProfileOrdersPage = () => {
       Array.from(statusFilter).length !== statusOptions.length
     ) {
       filteredUsers = filteredUsers.filter((or) =>
-        Array.from(statusFilter).includes(or.status)
+        Array.from(statusFilter).includes(or.estado)
       );
     }
 
@@ -307,14 +320,16 @@ const ProfileOrdersPage = () => {
       case "idPedido":
         return (
           <p className="text-bold text-tiny capitalize text-default-400">
-            {order._id}
+            {order.id}
           </p>
         );
       case "name":
-        return <p className="text-bold text-tiny">{order.user.name || "?"}</p>;
+        return (
+          <p className="text-bold text-tiny">{order.usuarioNombre || "?"}</p>
+        );
       case "date":
-        // Convertir la fecha createdAt en un objeto de fecha
-        const createdAtDate = new Date(order.createdAt);
+        // Convertir la fecha fecha_creado en un objeto de fecha
+        const createdAtDate = new Date(order.fecha_creado);
 
         // Función para formatear la fecha en el formato deseado
         const formattedDate = createdAtDate.toLocaleDateString("es-ES", {
@@ -335,17 +350,17 @@ const ProfileOrdersPage = () => {
         let color;
 
         // Condición para establecer el color del estado
-        if (order.status === "Pendiente") {
+        if (order.estado === "Pendiente") {
           color = "warning";
-        } else if (order.status === "En camino") {
+        } else if (order.estado === "En camino") {
           color = "primary";
-        } else if (order.status === "Entregado") {
+        } else if (order.estado === "Entregado") {
           color = "success";
         }
 
         return (
           <Chip className="capitalize" color={color} size="sm" variant="flat">
-            {order.status}
+            {order.estado}
           </Chip>
         );
       case "actions":
@@ -363,7 +378,7 @@ const ProfileOrdersPage = () => {
                 </Button>
               </DropdownTrigger>
               <DropdownMenu aria-label="Opciones de acciones">
-                {order.status !== "Entregado" && (
+                {order.estado !== "Entregado" && (
                   <DropdownItem
                     textValue="updateStatus"
                     color="success"
@@ -379,13 +394,15 @@ const ProfileOrdersPage = () => {
                 >
                   Más detalles
                 </DropdownItem>
-                <DropdownItem
-                  textValue="Eliminar"
-                  color="danger"
-                  onPress={() => handleOpenModalConfirmDelete(order._id)}
-                >
-                  Eliminar
-                </DropdownItem>
+                {order.estado !== "Entregado" && (
+                  <DropdownItem
+                    textValue="Cancelar"
+                    color="danger"
+                    onPress={() => handleOpenModalConfirmDelete(order.id)}
+                  >
+                    Cancelar
+                  </DropdownItem>
+                )}
               </DropdownMenu>
             </Dropdown>
           </div>
@@ -477,9 +494,9 @@ const ProfileOrdersPage = () => {
   }, [page, pages]);
 
   useEffect(() => {
-    if (status === "unauthenticated" && !session?.user.admin) {
+    if (status === "unauthenticated" && session?.user.admin === 0) {
       return router.push("/");
-    } else if (status === "authenticated" && !session?.user.admin) {
+    } else if (status === "authenticated" && session?.user.admin === 0) {
       return router.push("/");
     }
   }, [session?.user.admin, status]);
@@ -506,7 +523,7 @@ const ProfileOrdersPage = () => {
           </TableHeader>
           <TableBody items={items}>
             {(item) => (
-              <TableRow key={item._id} emptyContent={"No hay pedidos."}>
+              <TableRow key={item.id} emptyContent={"No hay pedidos."}>
                 {(columnKey) => (
                   <TableCell>{renderCell(item, columnKey)}</TableCell>
                 )}

@@ -59,6 +59,7 @@ const FormLogin = ({ onOpen }) => {
       <div className="flex flex-col gap-3 lg:p-7 mb-5 lg:mb-0">
         <div className="flex flex-col w-full mb-6 md:mb-0 gap-4">
           <Input
+            isDisabled={sesionLoading}
             type="email"
             label="Email"
             color="warning"
@@ -74,6 +75,7 @@ const FormLogin = ({ onOpen }) => {
             className="text-white"
           />
           <Input
+            isDisabled={sesionLoading}
             type={isVisible ? "text" : "password"}
             label="Contraseña"
             color="warning"

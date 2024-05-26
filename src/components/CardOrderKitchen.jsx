@@ -1,3 +1,4 @@
+import { useState } from "react";
 import {
   Button,
   Card,
@@ -7,14 +8,13 @@ import {
   Divider,
 } from "@nextui-org/react";
 import axios from "axios";
-import { useState } from "react";
 import toast from "react-hot-toast";
 
 const CardOrderKitchen = ({ order }) => {
   const [updateStatusLoanding, setUpdateStatusLoanding] = useState(false);
 
   // Convertir la fecha createdAt en un objeto de fecha
-  const createdAtDate = new Date(order.createdAt);
+  const createdAtDate = new Date(order.fecha_creado);
 
   // Función para formatear la fecha en el formato deseado
   const formattedDate = createdAtDate.toLocaleDateString("es-ES", {
@@ -27,16 +27,16 @@ const CardOrderKitchen = ({ order }) => {
   });
 
   // Función para actualizar estado del pedido
-  async function handleUpdate(_id, status, deliveryMethod) {
+  const handleUpdate = async (id, status, deliveryMethod) => {
     setUpdateStatusLoanding(true);
     try {
       const updateStatus = {
-        _id,
+        id,
         status,
         deliveryMethod,
       };
 
-      const res = await axios.put("/api/order", updateStatus);
+      const res = await axios.put("/api/kitchen", updateStatus);
 
       const { message } = res.data;
 
@@ -46,7 +46,7 @@ const CardOrderKitchen = ({ order }) => {
       console.log(error.message);
       setUpdateStatusLoanding(false);
     }
-  }
+  };
 
   return (
     <Card className="sm:min-w-[400px]">
@@ -65,24 +65,24 @@ const CardOrderKitchen = ({ order }) => {
           </div>
           <p className="text-md">
             ID Pedido:{" "}
-            <span className="text-small text-default-500">{order._id}</span>
+            <span className="text-small text-default-500">{order.id}</span>
           </p>
           <Divider />
           <div className="flex flex-col gap-1 pt-3">
-            {order.deliveryMethod.method === "Restaurante" && (
+            {order.metodo_entrega === "Restaurante" && (
               <>
                 <p className="text-xl font-bold text-center">
-                  {order.deliveryMethod.method.toUpperCase()}
+                  {order.metodo_entrega.toUpperCase()}
                 </p>
                 <p className="font-medium text-center">
-                  MESA {order.deliveryMethod.tableNumber}
+                  MESA {order.numero_mesa}
                 </p>
               </>
             )}
-            {order.deliveryMethod.method === "Domicilio" && (
+            {order.metodo_entrega === "Domicilio" && (
               <>
                 <p className="text-xl font-bold text-center">
-                  {order.deliveryMethod.method.toUpperCase()}
+                  {order.metodo_entrega.toUpperCase()}
                 </p>
               </>
             )}
@@ -94,26 +94,26 @@ const CardOrderKitchen = ({ order }) => {
         <div className="flex flex-col justify-center gap-2">
           <div className="flex flex-col gap-1">
             <div>
-              {order.products.length > 0 &&
-                order.products.map((pro) => (
-                  <div key={pro._id} className="flex flex-col justify-center">
+              {order.platos.length > 0 &&
+                order.platos.map((pro) => (
+                  <div key={pro.id} className="flex flex-col justify-center">
                     <div className="flex justify-between">
-                      <p className="font-bold text-lg">{pro.name}</p>
-                      <span className="font-bold">{pro.amount}U</span>
+                      <p className="font-bold text-lg">{pro.nombre}</p>
+                      <span className="font-bold">{pro.cantidad}U</span>
                     </div>
-                    {pro.additions.length > 0 && (
+                    {pro.adicionales.length > 0 && (
                       <div>
                         <p className="text-sm font-bold text-default-500">
                           Adicional
                         </p>
                         <div>
-                          {pro.additions.map((ad) => (
-                            <div key={ad._id} className="flex justify-between">
+                          {pro.adicionales.map((ad) => (
+                            <div key={ad.id} className="flex justify-between">
                               <p className="text-xs text-default-500">
-                                + {ad.name}
+                                + {ad.nombre}
                               </p>
                               <span className="text-xs text-default-500">
-                                {ad.amount}U
+                                {ad.cantidad}U
                               </span>
                             </div>
                           ))}
@@ -131,7 +131,7 @@ const CardOrderKitchen = ({ order }) => {
         <div className="flex justify-between w-full">
           <p className="font-medium text-xl">Total:</p>
           <span className="font-medium text-xl">
-            {order.totalAmount?.toLocaleString("es-CO", {
+            {parseInt(order.total).toLocaleString("es-CO", {
               style: "currency",
               currency: "COP",
             })}
@@ -143,7 +143,7 @@ const CardOrderKitchen = ({ order }) => {
           variant="ghost"
           radius="none"
           onPress={() =>
-            handleUpdate(order._id, order.status, order.deliveryMethod.method)
+            handleUpdate(order.id, order.estado, order.metodo_entrega)
           }
           isLoading={updateStatusLoanding}
           fullWidth={true}

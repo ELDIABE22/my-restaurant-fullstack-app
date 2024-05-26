@@ -87,7 +87,7 @@ const UserPage = () => {
       filteredUsers = filteredUsers.filter((user) => {
         let filterAdmin;
 
-        if (user.admin) {
+        if (user.admin === 1) {
           filterAdmin = "true";
         } else {
           filterAdmin = "false";
@@ -148,11 +148,11 @@ const UserPage = () => {
         return (
           <Chip
             className="capitalize"
-            color={user.admin ? "warning" : "primary"}
+            color={user.admin === 1 ? "warning" : "primary"}
             size="sm"
             variant="flat"
           >
-            {user.admin ? "Admin" : "Usuario"}
+            {user.admin === 1 ? "Admin" : "Usuario"}
           </Chip>
         );
       case "actions":
@@ -173,9 +173,9 @@ const UserPage = () => {
                 <DropdownItem textValue="Editar" color="warning">
                   <Link
                     href={
-                      session?.user._id === user._id
+                      session?.user.id === user.id
                         ? "/profile"
-                        : `/profile/users/update/${user._id}`
+                        : `/profile/users/update/${user.id}`
                     }
                     className="w-full"
                   >
@@ -202,7 +202,7 @@ const UserPage = () => {
           <Input
             isClearable
             className="w-full sm:max-w-[44%]"
-            placeholder="Search by name..."
+            placeholder="Buscar por nombre..."
             startContent={<SearchIcon />}
             value={filterValue}
             onClear={() => onClear()}
@@ -276,7 +276,7 @@ const UserPage = () => {
   useEffect(() => {
     const fetchData = () => {
       if (status === "authenticated") {
-        if (session?.user.admin) {
+        if (session?.user.admin === 1) {
           fetch("/api/profile/users").then((res) => {
             res.json().then((data) => {
               setUsers(data);
@@ -322,7 +322,7 @@ const UserPage = () => {
           <TableBody items={items}>
             {(item) => (
               <TableRow
-                key={item._id}
+                key={item.id}
                 emptyContent={"No hay cuentas registradas."}
               >
                 {(columnKey) => (

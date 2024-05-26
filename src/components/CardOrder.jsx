@@ -16,24 +16,24 @@ import toast from "react-hot-toast";
 import axios from "axios";
 import { VerticalDotsIcon } from "./icons/VerticalDotsIcon";
 
-const CardOrder = ({ order }) => {
+const CardOrder = ({ order, getOrders }) => {
   let disabledKeys = [];
 
   let color;
 
-  if (order.status === "Pendiente") {
+  if (order.estado === "Pendiente") {
     disabledKeys = ["enCamino", "entregado"];
     color = "warning";
-  } else if (order.status === "En camino") {
+  } else if (order.estado === "En camino") {
     disabledKeys = ["pendiente", "entregado"];
     color = "primary";
-  } else if (order.status === "Entregado") {
+  } else if (order.estado === "Entregado") {
     disabledKeys = ["pendiente", "enCamino"];
     color = "success";
   }
 
   // Convertir la fecha createdAt en un objeto de fecha
-  const createdAtDate = new Date(order.createdAt);
+  const createdAtDate = new Date(order.fecha_creado);
 
   // Función para formatear la fecha en el formato deseado
   const formattedDate = createdAtDate.toLocaleDateString("es-ES", {
@@ -46,15 +46,16 @@ const CardOrder = ({ order }) => {
   });
 
   // Función para cancelar pedido
-  async function handleDelete(id) {
+  const handleUpdate = async (id) => {
     try {
       const promise = new Promise(async (resolve, reject) => {
-        const res = await axios.delete(`/api/order/${id}`);
+        const res = await axios.put("/api/order", { id });
 
         const { message } = res.data;
 
         if (message === "Pedido cancelado") {
           resolve(message);
+          getOrders();
         } else {
           reject(new Error(message));
         }
@@ -68,7 +69,7 @@ const CardOrder = ({ order }) => {
     } catch (error) {
       console.log(error);
     }
-  }
+  };
 
   return (
     <Card className="min-w-[300px]">
@@ -84,7 +85,7 @@ const CardOrder = ({ order }) => {
             <div>
               <span className="text-xs text-default-500">{formattedDate}</span>
             </div>
-            {order.status !== "Entregado" && (
+            {order.estado !== "Entregado" && (
               <div className="absolute right-0">
                 <Dropdown>
                   <DropdownTrigger>
@@ -101,7 +102,7 @@ const CardOrder = ({ order }) => {
                     <DropdownItem
                       textValue="Eliminar"
                       color="danger"
-                      onPress={() => handleDelete(order._id)}
+                      onPress={() => handleUpdate(order.id)}
                     >
                       Cancelar
                     </DropdownItem>
@@ -112,7 +113,7 @@ const CardOrder = ({ order }) => {
           </div>
           <p className="text-md">
             ID Pedido:{" "}
-            <span className="text-small text-default-500">{order._id}</span>
+            <span className="text-small text-default-500">{order.id}</span>
           </p>
         </div>
       </CardHeader>
@@ -121,11 +122,11 @@ const CardOrder = ({ order }) => {
         <div className="flex flex-col justify-center gap-2">
           <div className="flex flex-col gap-1">
             <div>
-              {order.products.length > 0 &&
-                order.products.map((pro) => (
-                  <div key={pro._id} className="flex justify-between">
-                    <p className="font-bold text-lg">{pro.name}</p>
-                    <p className="font-bold">{pro.amount}U</p>
+              {order.platos.length > 0 &&
+                order.platos.map((pro) => (
+                  <div key={pro.id} className="flex justify-between">
+                    <p className="font-bold text-lg">{pro.nombre}</p>
+                    <p className="font-bold">{pro.cantidad}U</p>
                   </div>
                 ))}
             </div>
@@ -140,37 +141,37 @@ const CardOrder = ({ order }) => {
                 <p className="flex justify-between">
                   Método de entrega:{" "}
                   <span className="text-small text-default-500">
-                    {order.deliveryMethod.method}
+                    {order.metodo_entrega}
                   </span>
                 </p>
-                {order.deliveryMethod.method === "Restaurante" && (
+                {order.metodo_entrega === "Restaurante" && (
                   <p className="flex justify-between">
                     Número de mesa:{" "}
                     <span className="text-small text-default-500">
-                      {order.deliveryMethod.tableNumber}
+                      {order.numero_mesa}
                     </span>
                   </p>
                 )}
-                {order.deliveryMethod.method === "Domicilio" && (
+                {order.metodo_entrega === "Domicilio" && (
                   <p className="flex justify-between">
                     Dirección:{" "}
                     <span className="text-small text-default-500">
-                      {order.shippingAddress}
+                      {order.direccion_envio}
                     </span>
                   </p>
                 )}
-                {order.deliveryMethod.method === "Domicilio" && (
+                {order.metodo_entrega === "Domicilio" && (
                   <p className="flex justify-between">
                     Barrio:{" "}
                     <span className="text-small text-default-500">
-                      {order.city}
+                      {order.ciudad_envio}
                     </span>
                   </p>
                 )}
                 <p className="flex justify-between">
                   Metodo de pago:
                   <span className="text-small text-default-500">
-                    {order.paymentMethod}
+                    {order.metodo_pago}
                   </span>
                 </p>
               </div>
@@ -190,7 +191,7 @@ const CardOrder = ({ order }) => {
                   disabledKeys={disabledKeys}
                 >
                   <Tab key="pendiente" title="Pendiente" />
-                  {order.deliveryMethod.method === "Domicilio" && (
+                  {order.metodo_entrega === "Domicilio" && (
                     <Tab key="enCamino" title="En camino" />
                   )}
                   <Tab key="entregado" title="Entregado" />
@@ -204,7 +205,7 @@ const CardOrder = ({ order }) => {
       <CardFooter className="flex justify-between">
         <p className="font-medium text-xl">Total:</p>
         <span className="font-medium text-xl">
-          {order.totalAmount?.toLocaleString("es-CO", {
+          {parseInt(order.total).toLocaleString("es-CO", {
             style: "currency",
             currency: "COP",
           })}

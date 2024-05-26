@@ -17,7 +17,7 @@ const ModalCupon = ({ isOpen, onOpenChange, updateCosts }) => {
   const [error, setError] = useState(null);
 
   // Función para aplicar cupón
-  async function handleSubmit(e, onClose) {
+  const handleSubmit = async (e, onClose) => {
     e.preventDefault();
     try {
       const validateCoupon = usedCouponSchema.parse({
@@ -32,10 +32,11 @@ const ModalCupon = ({ isOpen, onOpenChange, updateCosts }) => {
           validateCoupon
         );
 
-        const { message, data } = res.data;
+        const { message } = res.data;
 
         if (message.includes("Cupón") && message.includes("aplicado")) {
-          resolve({ message, data });
+          resolve(message);
+          updateCosts();
         } else {
           reject(new Error(message));
         }
@@ -46,23 +47,14 @@ const ModalCupon = ({ isOpen, onOpenChange, updateCosts }) => {
 
       await toast.promise(promise, {
         loading: "Aplicando cupón...",
-        success: ({ message }) => message,
+        success: (message) => message,
         error: (err) => err.message,
       });
-
-      const dataCuopon = await promise;
-
-      if (
-        dataCuopon.message.includes("Cupón") &&
-        dataCuopon.message.includes("aplicado")
-      ) {
-        updateCosts();
-      }
     } catch (error) {
       const errors = error?.errors?.map((error) => error.message);
       setError(errors);
     }
-  }
+  };
 
   return (
     <Modal

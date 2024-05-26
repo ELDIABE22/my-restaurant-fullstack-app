@@ -23,7 +23,7 @@ const CouponsPage = () => {
 
   const router = useRouter();
 
-  // Función para crear un cúpon y guardarlo en la base de datos
+  // Función para crear un cúpon
   async function handleSubmit(e) {
     setCreatingCoupon(true);
     e.preventDefault();
@@ -54,7 +54,6 @@ const CouponsPage = () => {
         setCreatingCoupon(false);
       }
     } catch (error) {
-      console.log(error.message);
       const errors = error?.errors?.map((error) => error.message);
       setError(errors);
       setCreatingCoupon(false);
@@ -75,7 +74,7 @@ const CouponsPage = () => {
   // useEffect para ejecutar la función getCoupons();
   useEffect(() => {
     if (status === "authenticated") {
-      if (session?.user.admin) {
+      if (session?.user.admin === 1) {
         getCoupons();
       } else {
         return router.push("/");
@@ -103,6 +102,7 @@ const CouponsPage = () => {
           <form onSubmit={handleSubmit} className="flex flex-col gap-3">
             <p className="font-bold text-xl text-center">AGREGAR CÚPON</p>
             <Input
+              isDisabled={creatingCoupon}
               type="text"
               label={"Código del cupón"}
               color="warning"
@@ -117,8 +117,9 @@ const CouponsPage = () => {
               errorMessage={error?.find((error) => error.code)?.code}
             />
             <Input
+              isDisabled={creatingCoupon}
               type="number"
-              label={"Descuento"}
+              label="Descuento"
               color="warning"
               min="1"
               variant="bordered"
@@ -135,6 +136,7 @@ const CouponsPage = () => {
               }
             />
             <Input
+              isDisabled={creatingCoupon}
               type="date"
               label="Expiración"
               color="warning"
@@ -142,7 +144,6 @@ const CouponsPage = () => {
               radius="none"
               size="sm"
               autoComplete="off"
-              isClearable
               value={expirationDate}
               onValueChange={setExpirationDate}
               isInvalid={error?.some((error) => error.expirationDate)}
@@ -162,7 +163,9 @@ const CouponsPage = () => {
             </Button>
           </form>
 
-          <CouponsTable coupons={coupons} getCoupons={getCoupons} />
+          {coupons.length > 0 && (
+            <CouponsTable coupons={coupons} getCoupons={getCoupons} />
+          )}
         </section>
       )}
     </>

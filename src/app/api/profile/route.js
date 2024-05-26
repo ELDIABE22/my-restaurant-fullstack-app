@@ -22,11 +22,11 @@ export async function PUT(req) {
             if (!validatePhone) return NextResponse.json({ message: "El teléfono ya existe!" });
         }
 
-        const values = [nombreCompleto, telefono, ciudad, direccion, user.correo];
+        const values = [nombreCompleto, telefono, ciudad, direccion, user.admin, user.correo];
 
         await sql.query(`
             UPDATE Usuario
-            SET nombreCompleto = ?, telefono = ?, ciudad = ?, direccion = ?
+            SET nombreCompleto = ?, telefono = ?, ciudad = ?, direccion = ?, admin = ?
             WHERE correo = ?
         `, values);
 
@@ -40,6 +40,7 @@ export async function PUT(req) {
         return NextResponse.json({ message: "Usuario actualizado exitosamente", updatedUser: updatedUser[0] });
 
     } catch (error) {
+        console.log(error.message);
         return NextResponse.json({ message: "Error, inténtalo más tarde", error: error.message });
     }
 }

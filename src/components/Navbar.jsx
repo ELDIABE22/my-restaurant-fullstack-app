@@ -45,24 +45,27 @@ export default function App() {
   // Función para obtener pedidos pendientes
   const fetchUnfinishedOrders = async () => {
     try {
-      const res = await axios.get("/api/order");
-      const { data } = res;
-      const pendingOrders = data.some(
-        (order) =>
-          order.user === session?.user._id &&
-          order.paid === true &&
-          order.status !== "Entregado"
-      );
+      const resOrder = await axios.get(`/api/order/${session?.user.id}`);
+      const { data: dataOrder } = resOrder;
 
       if (session?.user.admin === 1) {
-        const pendingOrdersKitchen = data.some(
-          (order) => order.paid === true && order.status === "Pendiente"
-        );
+        const resOrderKitchen = await axios.get("/api/kitchen");
+        const { data: dataOrderKitchen } = resOrderKitchen;
 
-        setHasUnfinishedOrdersKitchen(pendingOrdersKitchen);
+        setHasUnfinishedOrdersKitchen(
+          dataOrderKitchen.length > 0 ? true : false
+        );
       }
 
-      setHasUnfinishedOrders(pendingOrders);
+      // Determinar si el usuario tiene órdenes pagadas con estados diferentes a "entregado"
+      let hasPaidNonDeliveredOrders = false;
+      dataOrder.forEach((order) => {
+        if (order.pagado === 1 && order.estado !== "Entregado") {
+          hasPaidNonDeliveredOrders = true;
+        }
+      });
+
+      setHasUnfinishedOrders(hasPaidNonDeliveredOrders);
     } catch (error) {
       console.error("Error al obtener pedidos pendientes:", error);
     }

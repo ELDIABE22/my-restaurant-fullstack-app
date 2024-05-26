@@ -30,8 +30,10 @@ const MenuItemEdit = ({ params }) => {
   const [itemCategory, setItemCategory] = useState("");
   const [boxItem, setBoxItem] = useState([]);
   const [categorys, setCategorys] = useState([]);
-  const [updateItem, setUpdateItem] = useState(false);
   const [editBox, setEditBox] = useState(null);
+
+  const [updateItem, setUpdateItem] = useState(false);
+  const [deleteEvent, setDeleteEvent] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -54,25 +56,17 @@ const MenuItemEdit = ({ params }) => {
     setUpdateItem(true);
 
     try {
-      // const data = menuItemSchema.parse({
-      //   name: itemName,
-      //   description: itemDescription,
-      //   price: itemPrice,
-      //   category: itemCategory,
-      //   itemBox: boxItem,
-      // });
-
       setError(null);
 
       const formData = new FormData();
 
       if (itemImage.file) {
         formData.append("image", itemImage.file);
-        formData.append("idRemoveImage", itemImage.image.public_id);
       } else {
-        formData.append("image", itemImage.image.url);
-        formData.append("idRemoveImage", itemImage.image.public_id);
+        formData.append("image", itemImage.image);
       }
+
+      formData.append("imageRemove", itemImage.imageRemove);
 
       formData.append("id", params.id);
 
@@ -91,17 +85,15 @@ const MenuItemEdit = ({ params }) => {
 
       const { message } = res.data;
 
-      if (message === "Elemento actualizado exitosamente") {
+      if (message === "Plato actualizado") {
         toast.success(message);
         setError(null);
-        setUpdateItem(false);
         router.push("/profile/menu-items");
-      } else if (message) {
-        toast.error(message);
-        setUpdateItem(false);
       } else {
-        setUpdateItem(false);
+        toast.error(message);
       }
+
+      setUpdateItem(false);
     } catch (error) {
       const errors = error?.errors?.map((error) => error.message);
       setError(errors);
@@ -116,9 +108,11 @@ const MenuItemEdit = ({ params }) => {
 
   // función para eliminar el menu-items
   async function handleDelete() {
+    setDeleteEvent(true);
+
     const formData = new FormData();
     formData.append("idRemoveMenu", params.id);
-    formData.append("idRemoveImage", itemImage.image.public_id);
+    formData.append("imageRemove", itemImage.imageRemove);
 
     const promise = new Promise(async (resolve, reject) => {
       const res = await axios.delete("/api/profile/menu-items", {
@@ -127,11 +121,13 @@ const MenuItemEdit = ({ params }) => {
 
       const { message } = res.data;
 
-      if (message === "Menú de elemento eliminado") {
+      if (message === "Plato eliminado") {
         resolve();
+        setDeleteEvent(false);
         router.push("/profile/menu-items");
       } else {
         reject();
+        setDeleteEvent(false);
       }
     });
 
@@ -161,50 +157,102 @@ const MenuItemEdit = ({ params }) => {
     setIsModalOpenDelete(false);
   }
 
-  // useEffect para traer las categorias y datos del menu-items a actualizar
+  const getItem = async () => {
+    try {
+      const resMenuItem = await axios.get(
+        `/api/profile/menu-items/${params.id}`
+      );
+      const { data: dataMenuItem } = resMenuItem;
+
+      const resCategory = await axios.get(`/api/category`);
+      const { data: dataCategory } = resCategory;
+
+      // Crear el objeto principal del plato
+      const plato = {
+        id: dataMenuItem[0].plato_id,
+        imagen_url: dataMenuItem[0].imagen_url,
+        nombre: dataMenuItem[0].plato_nombre,
+        descripcion: dataMenuItem[0].plato_descripcion,
+        precio: dataMenuItem[0].plato_precio,
+        categoria: {
+          id: dataMenuItem[0].categoria_id,
+          nombre: dataMenuItem[0].categoria_nombre,
+        },
+      };
+
+      // Crear un mapa para los plato_caja por id
+      const cajasMap = new Map();
+
+      dataMenuItem.forEach((row) => {
+        // Verificar si hay plato_caja_id y plato_caja_item_id presentes
+        if (row.plato_caja_id && row.plato_caja_item_id) {
+          // Si el plato_caja ya existe, añadir el item a la caja
+          if (cajasMap.has(row.plato_caja_id)) {
+            const caja = cajasMap.get(row.plato_caja_id);
+            caja.dataMenuItem.push({
+              id: row.plato_caja_item_id,
+              nombre: row.plato_caja_item_nombre,
+              precio: row.plato_caja_item_precio,
+              tipo: row.plato_caja_item_tipo,
+            });
+          } else {
+            // Si el plato_caja no existe, crear una nueva entrada
+            const caja = {
+              id: row.plato_caja_id,
+              nombre: row.plato_caja_nombre,
+              descripcion: row.plato_caja_descripcion,
+              cantidad_maxima: row.plato_caja_cantidad_maxima,
+              dataMenuItem: [
+                {
+                  id: row.plato_caja_item_id,
+                  nombre: row.plato_caja_item_nombre,
+                  precio: row.plato_caja_item_precio,
+                  tipo: row.plato_caja_item_tipo,
+                },
+              ],
+            };
+            cajasMap.set(row.plato_caja_id, caja);
+          }
+        }
+      });
+
+      // Convertir el mapa a un array y añadirlo al plato si hay cajas
+      const cajasArray = Array.from(cajasMap.values());
+      plato.cajas = cajasArray;
+
+      setItemImage({ image: plato.imagen_url, file: null });
+      setItemName(plato.nombre);
+      setItemDescription(plato.descripcion);
+      setItemPrice(plato.precio);
+      setItemCategory(plato.categoria.id);
+
+      setBoxItem(plato.cajas);
+
+      setCategorys(dataCategory);
+
+      setLoading(false);
+    } catch (error) {
+      console.log("Error, intentar más tarde: " + error.message);
+    }
+  };
+
   useEffect(() => {
     if (status === "authenticated") {
-      if (session?.user.admin) {
-        const fetchProfileItems = fetch("/api/profile/menu-items").then((res) =>
-          res.json()
-        );
-        const fetchCategories = fetch("/api/category").then((res) =>
-          res.json()
-        );
-
-        Promise.all([fetchProfileItems, fetchCategories])
-          .then(([profileItemsData, categoriesData]) => {
-            const item = profileItemsData.find(
-              (item) => item._id === params.id
-            );
-            if (item) {
-              setItemImage({ image: item.image, file: null });
-              setItemName(item.name);
-              setItemDescription(item.description);
-              setItemPrice(item.price);
-              setItemCategory(item.category);
-              setBoxItem(item.itemBox);
-            }
-
-            setCategorys(categoriesData);
-          })
-          .catch((error) => {
-            console.error("Error fetching data:", error);
-          })
-          .finally(() => {
-            setLoading(false);
-          });
+      if (session?.user.admin === 1) {
+        getItem();
       } else {
         return router.push("/");
       }
     } else if (status === "unauthenticated") {
       return router.push("/");
     }
-  }, [params.id, router, session?.user.admin, status]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [session?.user.admin, status]);
 
   return (
     <div className="flex flex-col justify-center items-center gap-8">
       <Button
+        isDisabled={updateItem || deleteEvent}
         className="w-2/4"
         color="warning"
         variant="ghost"
@@ -225,10 +273,13 @@ const MenuItemEdit = ({ params }) => {
               itemImage={itemImage}
               setItemImage={setItemImage}
               params={params}
+              updateItem={updateItem}
+              deleteEvent={deleteEvent}
             />
           </div>
           <div className="flex flex-col gap-4">
             <Input
+              isDisabled={updateItem || deleteEvent}
               type="text"
               label="Nombre del elemento"
               color="warning"
@@ -241,6 +292,7 @@ const MenuItemEdit = ({ params }) => {
               errorMessage={error?.find((error) => error.name)?.name}
             />
             <Textarea
+              isDisabled={updateItem || deleteEvent}
               label="Descripción"
               color="warning"
               variant="bordered"
@@ -255,6 +307,7 @@ const MenuItemEdit = ({ params }) => {
             />
             <div className="flex gap-3">
               <Input
+                isDisabled={updateItem || deleteEvent}
                 type="number"
                 label="Precio base"
                 min={1}
@@ -268,10 +321,11 @@ const MenuItemEdit = ({ params }) => {
                 errorMessage={error?.find((error) => error.price)?.price}
               />
               <Autocomplete
+                isDisabled={updateItem || deleteEvent}
                 label="Seleccionar categoría"
                 color="warning"
                 variant="bordered"
-                value={itemCategory}
+                selectedKey={itemCategory}
                 onSelectionChange={(e) => {
                   if (e === null) {
                     setItemCategory("");
@@ -284,15 +338,15 @@ const MenuItemEdit = ({ params }) => {
               >
                 {categorys.length > 0 &&
                   categorys.map((cat) => (
-                    <AutocompleteItem key={cat._id}>
-                      {cat.name}
+                    <AutocompleteItem key={cat.id}>
+                      {cat.nombre}
                     </AutocompleteItem>
                   ))}
               </Autocomplete>
             </div>
 
             {boxItem?.length > 0 &&
-              boxItem?.map((box, boxIndex) => (
+              boxItem.map((box, boxIndex) => (
                 <AccordionMenuItem
                   key={boxIndex}
                   box={box}
@@ -303,10 +357,13 @@ const MenuItemEdit = ({ params }) => {
                   error={error}
                   setError={setError}
                   handleOpenModalDelete={handleOpenModalDelete}
+                  updateItem={updateItem}
+                  deleteEvent={deleteEvent}
                 />
               ))}
 
             <Button
+              isDisabled={updateItem || deleteEvent}
               type="button"
               color="warning"
               size="lg"
@@ -323,12 +380,15 @@ const MenuItemEdit = ({ params }) => {
               size="lg"
               variant="shadow"
               isLoading={updateItem}
+              isDisabled={deleteEvent}
             >
-              <p className="text-white tracking-widest font-bold hover:scale-110 transform transition-transform duration-[0.2s] ease-in-out">
+              <p className="text-white w-full tracking-widest font-bold hover:scale-110 transform transition-transform duration-[0.2s] ease-in-out">
                 {updateItem ? "Actualizando..." : "Actualizar"}
               </p>
             </Button>
             <Button
+              isDisabled={updateItem}
+              isLoading={deleteEvent}
               type="button"
               color="danger"
               size="lg"
@@ -342,7 +402,7 @@ const MenuItemEdit = ({ params }) => {
                 )
               }
             >
-              <p className="text-white tracking-widest font-bold hover:scale-110 transform transition-transform duration-[0.2s] ease-in-out">
+              <p className="text-white w-full tracking-widest font-bold hover:scale-110 transform transition-transform duration-[0.2s] ease-in-out">
                 Eliminar
               </p>
             </Button>

@@ -1,12 +1,12 @@
+import PlusIcon from "./icons/PlusIcon";
+import MinusIcon from "./icons/MinusIcon";
+import { Fragment } from "react";
 import {
   Accordion,
   AccordionItem,
   Checkbox,
   CheckboxGroup,
 } from "@nextui-org/react";
-import { Fragment } from "react";
-import PlusIcon from "./icons/PlusIcon";
-import MinusIcon from "./icons/MinusIcon";
 
 const AccordionMenu = ({
   boxData,
@@ -15,10 +15,10 @@ const AccordionMenu = ({
 }) => {
   // Agrega un elemento al carrito, incrementando la cantidad si el elemento ya existe y su cantidad es menor a 10, o añadiéndolo con una cantidad de 1 si no existe.
   function AddBoxElements(element, maxLength, idBox, selectedElementId) {
-    if (element.typeSelect === "0") {
+    if (element.tipo === "Sin valor") {
       setSelectedBoxElements((prevElements) => {
         const existingElementIndex = prevElements.findIndex(
-          (prevElement) => prevElement._id === selectedElementId
+          (prevElement) => prevElement.id === selectedElementId
         );
 
         if (existingElementIndex !== -1) {
@@ -40,7 +40,7 @@ const AccordionMenu = ({
     } else {
       setSelectedBoxElements((prevElements) => {
         const existingElement = prevElements.find(
-          (prevElement) => prevElement._id === element._id
+          (prevElement) => prevElement.id === element.id
         );
 
         if (existingElement) {
@@ -48,25 +48,25 @@ const AccordionMenu = ({
             (sum, prevElement) =>
               prevElement.boxProperty?.idBox ===
               existingElement.boxProperty.idBox
-                ? sum + prevElement.amount
+                ? sum + prevElement.cantidad
                 : sum,
             0
           );
 
-          const maxLength = existingElement.boxProperty.maxLength;
+          const maxLength = existingElement.boxProperty.cantidad_maxima;
 
           if (totalCantidad >= maxLength) {
             return prevElements;
           } else {
             // Verificar si la cantidad del elemento existente ya es 5
-            if (existingElement.amount >= 5) {
+            if (existingElement.cantidad >= 5) {
               // Si la cantidad ya es 5, no hacer cambios
               return prevElements;
             } else {
               // Si la cantidad es menor que 5, incrementa la cantidad
               return prevElements.map((prevElement) =>
-                prevElement._id === existingElement._id
-                  ? { ...prevElement, amount: prevElement.amount + 1 }
+                prevElement.id === existingElement.id
+                  ? { ...prevElement, cantidad: prevElement.cantidad + 1 }
                   : prevElement
               );
             }
@@ -76,7 +76,7 @@ const AccordionMenu = ({
           const totalCantidadForNewElement = prevElements.reduce(
             (sum, prevElement) =>
               prevElement.boxProperty?.idBox === idBox
-                ? sum + prevElement.amount
+                ? sum + prevElement.cantidad
                 : sum,
             0
           );
@@ -91,7 +91,7 @@ const AccordionMenu = ({
               ...prevElements,
               {
                 ...element,
-                amount: 1,
+                cantidad: 1,
                 boxProperty: { idBox, maxLength },
               },
             ];
@@ -105,25 +105,25 @@ const AccordionMenu = ({
   function RemoveBoxElements(element) {
     setSelectedBoxElements((prevElements) => {
       const existingElementIndex = prevElements.findIndex(
-        (prevElement) => prevElement._id === element._id
+        (prevElement) => prevElement.id === element.id
       );
 
       if (existingElementIndex !== -1) {
         // Si el elemento existe, reduce su cantidad en 1
         const updatedElement = {
           ...prevElements[existingElementIndex],
-          amount: prevElements[existingElementIndex].amount - 1,
+          cantidad: prevElements[existingElementIndex].cantidad - 1,
         };
 
         // Si la cantidad del elemento es 0 o menos, elimina el elemento
-        if (updatedElement.amount <= 0) {
+        if (updatedElement.cantidad <= 0) {
           return prevElements.filter(
-            (prevElement) => prevElement._id !== element._id
+            (prevElement) => prevElement.id !== element.id
           );
         } else {
           // Si la cantidad es mayor que 0, actualiza el elemento en el estado
           return prevElements.map((prevElement) =>
-            prevElement._id === element._id ? updatedElement : prevElement
+            prevElement.id === element.id ? updatedElement : prevElement
           );
         }
       }
@@ -145,57 +145,57 @@ const AccordionMenu = ({
       {boxData.length > 0 &&
         boxData.map((box) => (
           <AccordionItem
-            key={box._id}
+            key={box.id}
             aria-label="Caja de elemento"
-            title={box.name}
-            subtitle={<span className="text-xs">{box.description}</span>}
+            title={box.nombre}
+            subtitle={<span className="text-xs">{box.descripcion}</span>}
           >
-            {box.data.map((dataItem, index) => (
+            {box.dataMenuItem.map((dataItem, index) => (
               <Fragment key={index}>
-                {dataItem.typeSelect === "0" && (
+                {dataItem.tipo === "Sin valor" && (
                   <CheckboxGroup
                     color="warning"
-                    value={selectedBoxElements.map((item) => item._id)}
-                    onValueChange={(values) => {
-                      const selectedElementId = dataItem._id;
+                    value={selectedBoxElements.map((item) => item.id)}
+                    onValueChange={() => {
+                      const selectedElementId = dataItem.id;
                       AddBoxElements(
                         dataItem,
-                        box.maxLength,
-                        box._id,
+                        box.cantidad_maxima,
+                        box.id,
                         selectedElementId
                       );
                     }}
                   >
                     <div className="flex justify-between py-6 px-4 border border-gray-800">
-                      <span>{dataItem.name}</span>
+                      <span>{dataItem.nombre}</span>
                       <Checkbox
                         isDisabled={
                           selectedBoxElements.length > 0 &&
                           selectedBoxElements.filter(
-                            (item) => item.boxProperty.idBox === box._id
-                          ).length === box.maxLength &&
+                            (item) => item.boxProperty.idBox === box.id
+                          ).length === box.cantidad_maxima &&
                           !selectedBoxElements.some(
-                            (item) => item._id === dataItem._id
+                            (item) => item.id === dataItem.id
                           )
                         }
-                        value={dataItem._id}
+                        value={dataItem.id}
                       />
                     </div>
                   </CheckboxGroup>
                 )}
 
-                {dataItem.typeSelect === "1" && (
+                {dataItem.tipo === "Valor" && (
                   <div className="flex justify-between py-2 px-4 border border-gray-800">
                     <div className="w-4/5">
                       <div>
                         <span className="text-sm lg:text-base font-light w-full">
-                          {dataItem.name}
+                          {dataItem.nombre}
                         </span>
                       </div>
                       <div>
                         <span className="text-sm font-light w-full text-gray-400">
                           +{" "}
-                          {dataItem.price.toLocaleString("es-CO", {
+                          {dataItem.precio.toLocaleString("es-CO", {
                             style: "currency",
                             currency: "COP",
                           })}
@@ -204,7 +204,7 @@ const AccordionMenu = ({
                     </div>
                     <div className="w-1/5 flex justify-end items-center">
                       {selectedBoxElements.some(
-                        (selectedItem) => selectedItem?._id === dataItem._id
+                        (selectedItem) => selectedItem?.id === dataItem.id
                       ) ? (
                         // Renderizar botones de incremento y decremento si el elemento está seleccionado
                         <div className="flex items-center space-x-4">
@@ -217,13 +217,17 @@ const AccordionMenu = ({
                           <span>
                             {
                               selectedBoxElements.find(
-                                (el) => el._id === dataItem._id
-                              ).amount
+                                (el) => el.id === dataItem.id
+                              ).cantidad
                             }
                           </span>
                           <div
                             onClick={() =>
-                              AddBoxElements(dataItem, box.maxLength, box._id)
+                              AddBoxElements(
+                                dataItem,
+                                box.cantidad_maxima,
+                                box.id
+                              )
                             }
                             className="cursor-pointer"
                           >
@@ -234,7 +238,11 @@ const AccordionMenu = ({
                         // Renderizar botón de adición si el elemento no está seleccionado
                         <button
                           onClick={() =>
-                            AddBoxElements(dataItem, box.maxLength, box._id)
+                            AddBoxElements(
+                              dataItem,
+                              box.cantidad_maxima,
+                              box.id
+                            )
                           }
                           className="text-white text-xl flex justify-center items-center h-6 w-6 rounded-full p-[5px] bg-orange-peel"
                         >

@@ -1,8 +1,8 @@
 "use client";
 
+import axios from "axios";
 import CardMenu from "@/components/CardMenu";
 import { Spinner } from "@nextui-org/react";
-import axios from "axios";
 import { useEffect, useState } from "react";
 
 const MenuPage = () => {
@@ -17,30 +17,33 @@ const MenuPage = () => {
       const menuItems = res.data;
 
       const categoryPromises = menuItems.map(async (item) => {
-        const categoryId = item.category;
+        const categoryId = item.categoriaId;
         const categoryRes = await axios.get(`/api/category/${categoryId}`);
         return categoryRes.data;
       });
 
       const categoriesData = await Promise.all(categoryPromises);
 
+      const flatCategoriesData = categoriesData.flat();
+
       const itemsWithCategoryName = menuItems.map((item, index) => {
         return {
           ...item,
-          category: categoriesData[index].name,
+          categoriaId: flatCategoriesData[index].nombre,
         };
       });
 
       const categoriesSet = new Set(
-        itemsWithCategoryName.map((cat) => cat.category)
+        itemsWithCategoryName.map((cat) => cat.categoriaId)
       );
+
       const categories = Array.from(categoriesSet).sort();
 
       setCategory(categories);
       setItems(itemsWithCategoryName);
       setLoadingMenuItems(false);
     } catch (error) {
-      console.log(error);
+      console.log(error.message);
     }
   };
 
@@ -50,7 +53,7 @@ const MenuPage = () => {
   }, []);
 
   return (
-    <div className="container mx-auto m-5 px-5">
+    <section className="container mx-auto m-5 px-5">
       {loadingMenuItems ? (
         <Spinner
           label="Cargando menú..."
@@ -59,7 +62,7 @@ const MenuPage = () => {
         />
       ) : (
         <>
-          {category?.length > 0 ? (
+          {category.length > 0 ? (
             category.map((cat, index) => (
               <div className="mb-4 pb-3" key={index}>
                 <div className="border-b-2 mb-4 pb-3">
@@ -71,8 +74,8 @@ const MenuPage = () => {
                   {items.length > 0 &&
                     items.map(
                       (item) =>
-                        item.category === cat && (
-                          <CardMenu key={item._id} item={item} />
+                        item.categoriaId === cat && (
+                          <CardMenu key={item.id} item={item} />
                         )
                     )}
                 </div>
@@ -83,7 +86,7 @@ const MenuPage = () => {
           )}
         </>
       )}
-    </div>
+    </section>
   );
 };
 

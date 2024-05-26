@@ -9,7 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@nextui-org/react": "^2.2.9",
+    "@nextui-org/react": "^2.3.6",
     "@react-google-maps/api": "^2.19.3",
     "axios": "^1.6.5",
     "bcrypt": "^5.1.1",

@@ -31,7 +31,7 @@ const Categories = () => {
 
         setError(null);
 
-        const data = { id: editedCategory._id, name: validatedCategory.name };
+        const data = { id: editedCategory.id, name: validatedCategory.name };
 
         const res = await axios.put("/api/category", data);
 
@@ -98,7 +98,7 @@ const Categories = () => {
 
   useEffect(() => {
     if (status === "authenticated") {
-      if (session?.user.admin) {
+      if (session?.user.admin === 1) {
         getCategory();
       } else {
         return router.push("/");

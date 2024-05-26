@@ -47,9 +47,9 @@ const Profile = () => {
 
       if (message === "Usuario actualizado exitosamente") {
         toast.success(message);
-        setCreatingUserLoading(false);
+        setUpdatingInfo(false);
       } else {
-        setCreatingUserLoading(false);
+        setUpdatingInfo(false);
       }
     } catch (error) {
       const errors = error?.errors?.map((error) => error.message);

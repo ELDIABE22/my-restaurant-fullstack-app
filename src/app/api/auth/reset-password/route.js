@@ -1,26 +1,28 @@
-import { connectDB } from "@/database/mongodb";
-import { NextResponse } from "next/server";
+import { sql } from "@/database/mysql";
 import bcrypt from "bcrypt";
-import User from "@/models/User";
+import { NextResponse } from "next/server";
 
 export async function POST(req) {
-    const { token, newPassword } = await req.json();
     try {
-        await connectDB();
+        const { token, newPassword } = await req.json();
 
-        const user = await User.findOne({ resetPasswordToken: token });
+        const [user] = await sql.query(`
+            SELECT *
+            FROM Usuario
+            WHERE resetPasswordToken = ?
+        `, [token]);
 
-        if (!user) {
+        if (user.length === 0) {
             return NextResponse.json({ message: 'El token de restablecimiento de contraseña es inválido o ha expirado.' });
         }
 
         const hashPassword = await bcrypt.hash(newPassword, 10);
 
-        user.contraseña = hashPassword;
-        user.resetPasswordToken = undefined;
-        user.resetPasswordExpires = undefined;
-
-        await user.save();
+        await sql.query(`
+            UPDATE Usuario
+            SET contraseña = ?, resetPasswordToken = ?, resetPasswordExpires = ?
+            WHERE id = ?
+        `, [hashPassword, null, null, user[0].id]);
 
         return NextResponse.json({ message: 'Tu contraseña ha sido restablecida con éxito.' });
     } catch (error) {

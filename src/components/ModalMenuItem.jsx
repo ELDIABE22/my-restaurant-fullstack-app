@@ -35,9 +35,9 @@ const ModalMenuItem = ({
 
       // Validar los datos con el esquema Zod
       boxSchemaZod.parse({
-        name: boxNameNormalize,
-        maxLength: boxMaximumQuantity,
-        description: boxDescription,
+        nombre: boxNameNormalize,
+        cantidad_maxima: boxMaximumQuantity,
+        descripcion: boxDescription,
       });
 
       setError(null);
@@ -48,9 +48,9 @@ const ModalMenuItem = ({
 
           updatedItems[editBox] = {
             ...updatedItems[editBox],
-            name: boxNameNormalize,
-            maxLength: boxMaximumQuantity,
-            description: boxDescription,
+            nombre: boxNameNormalize,
+            cantidad_maxima: boxMaximumQuantity,
+            descripcion: boxDescription,
           };
 
           return updatedItems;
@@ -62,10 +62,10 @@ const ModalMenuItem = ({
           return [
             ...items,
             {
-              name: boxNameNormalize,
-              maxLength: boxMaximumQuantity,
-              description: boxDescription,
-              data: [],
+              nombre: boxNameNormalize,
+              cantidad_maxima: boxMaximumQuantity,
+              descripcion: boxDescription,
+              dataMenuItem: [],
             },
           ];
         });
@@ -104,9 +104,9 @@ const ModalMenuItem = ({
   useEffect(() => {
     if (editBox != null && boxItem?.length > 0) {
       const firstBoxData = boxItem[editBox];
-      setBoxName(firstBoxData.name);
-      setBoxMaximumQuantity(firstBoxData.maxLength);
-      setBoxDescription(firstBoxData.description);
+      setBoxName(firstBoxData.nombre);
+      setBoxMaximumQuantity(firstBoxData.cantidad_maxima);
+      setBoxDescription(firstBoxData.descripcion);
     } else {
       setBoxName("");
       setBoxMaximumQuantity("");
@@ -119,7 +119,7 @@ const ModalMenuItem = ({
       isOpen={isOpen}
       onClose={handleOpenModal}
       onOpenChange={onOpenChange}
-      placement="top-center"
+      placement="center"
     >
       <ModalContent>
         {(onClose) => (

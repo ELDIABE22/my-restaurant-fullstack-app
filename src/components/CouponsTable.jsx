@@ -49,7 +49,7 @@ const CouponsTable = ({ coupons, getCoupons }) => {
   async function handleDelete(id) {
     try {
       const promise = new Promise(async (resolve, reject) => {
-        const res = await axios.delete(`/api/profile/coupon?_id=${id}`);
+        const res = await axios.delete(`/api/profile/coupon?id=${id}`);
 
         const { message } = res.data;
 
@@ -90,24 +90,26 @@ const CouponsTable = ({ coupons, getCoupons }) => {
       switch (columnKey) {
         case "code":
           return (
-            <p className="font-semibold text-small capitalize">{coupon.code}</p>
+            <p className="font-semibold text-small capitalize">
+              {coupon.codigo}
+            </p>
           );
         case "discount":
           return (
             <p className="font-semibold text-center capitalize text-green-500">
-              {Math.round(coupon.discountPercentage * 100)} %
+              {coupon.porcentaje_descuento} %
             </p>
           );
         case "expiration":
           return (
             <p
               className={
-                new Date() > new Date(coupon.expirationDate)
+                new Date() > new Date(coupon.fecha_caducidad)
                   ? "text-bold text-small capitalize line-through text-gray-400"
                   : "text-bold text-small capitalize"
               }
             >
-              {coupon.expirationDate.split("T")[0]}
+              {coupon.fecha_caducidad.split("T")[0]}
             </p>
           );
         case "actions":
@@ -115,7 +117,7 @@ const CouponsTable = ({ coupons, getCoupons }) => {
             <div
               onClick={() => {
                 onOpen();
-                setIdDelete(coupon._id);
+                setIdDelete(coupon.id);
               }}
               className="text-red-500 font-semibold hover:cursor-pointer hover:text-red-700 hover:text-opacity-70"
             >
@@ -160,7 +162,7 @@ const CouponsTable = ({ coupons, getCoupons }) => {
         </TableHeader>
         <TableBody items={items}>
           {(item) => (
-            <TableRow key={item._id} emptyContent={"No hay cupones."}>
+            <TableRow key={item.id} emptyContent={"No hay cupones."}>
               {(columnKey) => (
                 <TableCell>{renderCell(item, columnKey)}</TableCell>
               )}

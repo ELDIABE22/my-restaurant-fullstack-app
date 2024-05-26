@@ -1,19 +1,19 @@
 "use client";
 
-import AccordionOrder from "@/components/AccordionOrder";
-import CardCupon from "@/components/CardCupon";
-import CardOrderData from "@/components/CardOrderData";
-import CardTotal from "@/components/CardTotal";
 import Maps from "@/components/Maps";
 import axios from "axios";
-import { useOrder } from "@/context/OrderContext";
-import { Button, Spinner, useDisclosure } from "@nextui-org/react";
-import { LoadScript } from "@react-google-maps/api";
-import { useEffect, useState } from "react";
-import { useSession } from "next-auth/react";
-import CardDeliveryMethod from "@/components/CardDeliveryMethod";
 import ModalPay from "@/components/ModalPay";
+import CardCupon from "@/components/CardCupon";
+import CardTotal from "@/components/CardTotal";
+import CardOrderData from "@/components/CardOrderData";
+import AccordionOrder from "@/components/AccordionOrder";
+import CardDeliveryMethod from "@/components/CardDeliveryMethod";
+import { useOrder } from "@/context/OrderContext";
 import { useRouter } from "next/navigation";
+import { LoadScript } from "@react-google-maps/api";
+import { useSession } from "next-auth/react";
+import { useEffect, useState } from "react";
+import { Button, Spinner, useDisclosure } from "@nextui-org/react";
 
 const API_KEY = "AIzaSyCd7rDmSIZcV_OrXx4mNp5AN5MWI8j0m5k";
 
@@ -83,7 +83,7 @@ const CartPage = () => {
   };
 
   // Obtiene las coordenadas geográficas de una dirección y ciudad utilizando la API de Google Maps Geocoding.
-  async function getCoordinatesFromAddress(address, city) {
+  const getCoordinatesFromAddress = async (address, city) => {
     try {
       const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(
         address + ", " + city
@@ -97,15 +97,15 @@ const CartPage = () => {
     } catch (error) {
       console.log("Error al obtener las coordenadas" + error);
     }
-  }
+  };
 
   // Convierte grados a radianes.
-  function gradoARadian(grados) {
+  const gradoARadian = (grados) => {
     return grados * (Math.PI / 180);
-  }
+  };
 
   // Función para actualizar el estado del carrito con nuevas propiedades de costos
-  async function updateCosts() {
+  const updateCosts = async () => {
     try {
       let dataInfo = {};
 
@@ -116,7 +116,7 @@ const CartPage = () => {
 
       if (profileData) {
         dataInfo = {
-          id: profileData._id || "",
+          id: profileData.id || "",
           name: profileData.nombreCompleto || "",
           phone: profileData.telefono || "",
           address: profileData.direccion || "",
@@ -151,19 +151,17 @@ const CartPage = () => {
                 },
                 productCost,
                 costOfShipping: null,
-                discount:
-                  Math.round(
-                    (productCost * couponData.discountPercentage) / 100
-                  ) * 100,
+                discount: Math.round(
+                  (productCost * couponData.porcentaje_descuento) / 100
+                ),
                 tip: Math.round((productCost * 0.2) / 100) * 100,
                 total:
                   productCost +
                   shippingCost +
                   Math.round((productCost * 0.2) / 100) * 100 -
                   Math.round(
-                    (productCost * couponData.discountPercentage) / 100
-                  ) *
-                    100,
+                    (productCost * couponData.porcentaje_descuento) / 100
+                  ),
               };
             } else {
               updateOrder = {
@@ -174,19 +172,17 @@ const CartPage = () => {
                 },
                 productCost,
                 costOfShipping: shippingCost,
-                discount:
-                  Math.round(
-                    (productCost * couponData.discountPercentage) / 100
-                  ) * 100,
+                discount: Math.round(
+                  (productCost * couponData.porcentaje_descuento) / 100
+                ),
                 tip: Math.round((productCost * 0.2) / 100) * 100,
                 total:
                   productCost +
                   shippingCost +
                   Math.round((productCost * 0.2) / 100) * 100 -
                   Math.round(
-                    (productCost * couponData.discountPercentage) / 100
-                  ) *
-                    100,
+                    (productCost * couponData.porcentaje_descuento) / 100
+                  ),
               };
             }
 
@@ -278,7 +274,7 @@ const CartPage = () => {
       console.log("Error al actualizar los costos" + error);
       setLoadingCartData(false);
     }
-  }
+  };
 
   // useEffect para ejecutar la función updateCosts();
   useEffect(() => {
@@ -305,9 +301,13 @@ const CartPage = () => {
               <CardDeliveryMethod
                 shippingCost={shippingCost}
                 getDistance={getDistance}
+                loadingDeliveryMethod={loadingDeliveryMethod}
                 setLoadingDeliveryMethod={setLoadingDeliveryMethod}
               />
-              <CardOrderData updateCosts={updateCosts} />
+              <CardOrderData
+                updateCosts={updateCosts}
+                loadingDeliveryMethod={loadingDeliveryMethod}
+              />
               <AccordionOrder />
               {cart.deliveryMethod?.method !== "Restaurante" && (
                 <CardCupon updateCosts={updateCosts} />
@@ -333,6 +333,7 @@ const CartPage = () => {
               >
                 <CardTotal loadingDeliveryMethod={loadingDeliveryMethod} />
                 <Button
+                  isDisabled={loadingDeliveryMethod}
                   className="w-full text-base p-5 lg:mt-5"
                   radius="none"
                   size="md"

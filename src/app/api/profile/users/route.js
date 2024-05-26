@@ -1,14 +1,13 @@
-import { connectDB } from "@/database/mongodb";
-import User from "@/models/User";
+import { sql } from "@/database/mysql";
 import { NextResponse } from "next/server";
 
 export async function GET() {
     try {
-        await connectDB();
+        const [users] = await sql.query(`
+            SELECT * FROM Usuario
+        `);
 
-        const dataUsers = await User.find();
-
-        return NextResponse.json(dataUsers);
+        return NextResponse.json(users);
     } catch (error) {
         return NextResponse.json({ message: "Error, inténtalo más tarde", error: error.message });
     }
@@ -16,19 +15,27 @@ export async function GET() {
 
 export async function PUT(req) {
     try {
-        await connectDB();
+        const { id, nombreCompleto, telefono, ciudad, direccion, admin } = await req.json();
 
-        const dataToUpdate = await req.json();
+        const [validateUser] = await sql.query(`
+            SELECT *
+            FROM Usuario
+            WHERE telefono = ? 
+        `, [telefono]);
 
-        const validateUser = await User.findOne({ telefono: dataToUpdate.telefono });
-
-        if (validateUser) {
-            const validatePhone = validateUser._id == dataToUpdate.id;
+        if (validateUser.length > 0) {
+            const validatePhone = validateUser[0].id === id;
 
             if (!validatePhone) return NextResponse.json({ message: "El teléfono ya existe!" });
         }
 
-        await User.findByIdAndUpdate({ _id: dataToUpdate.id }, dataToUpdate);
+        const values = [nombreCompleto, telefono, ciudad, direccion, admin, id];
+
+        await sql.query(`
+            UPDATE Usuario
+            SET nombreCompleto = ?, telefono = ?, ciudad = ?, direccion = ?, admin = ?
+            WHERE id = ?
+        `, values);
 
         return NextResponse.json({ message: "Usuario actualizado" });
     } catch (error) {

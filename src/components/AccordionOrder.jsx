@@ -34,13 +34,13 @@ const AccordionOrder = () => {
                       shadow="sm"
                       radius="lg"
                       width="100%"
-                      alt={order.name}
+                      alt={order.nombre}
                       className="object-cover h-[100px] w-[100px]"
                       src={order.image}
                     />
                   </div>
                   <div className="flex flex-col gap-1">
-                    <p className="text-sm font-semibold">{order.name}</p>
+                    <p className="text-sm font-semibold">{order.nombre}</p>
                     <span className="text-sm font-semibold">
                       {order.total.toLocaleString("es-CO", {
                         style: "currency",
@@ -50,8 +50,8 @@ const AccordionOrder = () => {
                     {order.additions.length > 0 && (
                       <span className="text-[10px] text-slate-500">
                         {order.additions.map((add, index) => (
-                          <Fragment key={add.name}>
-                            {add.name}
+                          <Fragment key={add.nombre}>
+                            {add.nombre}
                             {index < order.additions.length - 1 && " · "}
                           </Fragment>
                         ))}
@@ -60,7 +60,7 @@ const AccordionOrder = () => {
                   </div>
                 </div>
                 <div>
-                  <p>{order.amount}u</p>
+                  <p>{order.cantidad}u</p>
                 </div>
               </div>
               {index < cart.length - 1 && <Divider />}

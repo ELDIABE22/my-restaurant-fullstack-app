@@ -1,88 +1,94 @@
+import { sql } from "@/database/mysql";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
-import { connectDB } from "@/database/mongodb";
-import Coupons from "@/models/Coupons";
-import UsedCoupons from "@/models/UsedCoupons";
-import { getServerSession } from "next-auth";
 import { NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
+import { id25Bytes } from "@/utils/uuidv4";
 
 export async function POST(req) {
     try {
-        await connectDB();
-
         const { couponCode } = await req.json();
-
         const uppercaseName = couponCode.toUpperCase();
+        const { user } = await getServerSession(authOptions);
 
-        const existingCoupon = await Coupons.findOne({ code: uppercaseName });
+        // CONSULTA CRUCE DE TABLA
+        const [couponData] = await sql.query(`
+            SELECT Cupon.*, Cupon_Usado.id AS cuponUsadoId, Cupon_Usado.usado
+            FROM Cupon
+            LEFT JOIN Cupon_Usado ON Cupon.id = Cupon_Usado.cuponId AND Cupon_Usado.usuarioId = ?
+            WHERE Cupon.codigo = ?
+        `, [user.id, uppercaseName]);
 
-        if (!existingCoupon) {
+        if (couponData.length === 0) {
             return NextResponse.json({ message: 'Cupón inválido' });
         }
 
-        const dataUser = await getServerSession(authOptions);
+        const coupon = couponData[0];
 
-        const usedCoupon = await UsedCoupons.findOne({ userId: dataUser.user._id, couponId: existingCoupon._id });
-        console.log(usedCoupon);
-
-        if (usedCoupon) {
-            if (new Date(existingCoupon.expirationDate) < new Date()) {
-                if (usedCoupon.used === false) {
-                    await UsedCoupons.findOneAndUpdate(usedCoupon._id, { used: true });
-                } else {
-                    return NextResponse.json({ message: 'Ya usaste este cupón' });
-                }
-
-                return NextResponse.json({ message: 'El cupón ya expiró' });
-            } else {
-                if (usedCoupon.used === true) {
-                    return NextResponse.json({ message: 'Ya usaste este cupón' });
-                } else {
-                    return NextResponse.json({ message: 'Ya tienes aplicado el cupón, ¡úsalo!' });
-
-                }
+        // Verificar si el cupón ha expirado
+        if (new Date(coupon.fecha_caducidad) < new Date()) {
+            if (coupon.cuponUsadoId && coupon.usado === 0) {
+                await sql.query(`
+                    UPDATE Cupon_Usado
+                    SET usado = 1
+                    WHERE id = ?
+                `, [coupon.cuponUsadoId]);
             }
-        }
-
-        if (new Date(existingCoupon.expirationDate) < new Date()) {
             return NextResponse.json({ message: 'El cupón ya expiró' });
         }
 
-        const saveCoupon = new UsedCoupons({ userId: dataUser.user._id, couponId: existingCoupon._id });
+        // Verificar si el cupón ya ha sido usado
+        if (coupon.cuponUsadoId) {
+            if (coupon.usado === 1) {
+                return NextResponse.json({ message: 'Ya usaste este cupón' });
+            } else {
+                return NextResponse.json({ message: 'Ya tienes aplicado el cupón, ¡úsalo!' });
+            }
+        }
 
-        await saveCoupon.save();
+        // Insertar el uso del cupón
+        await sql.query(`
+            INSERT INTO Cupon_Usado (id, usuarioId, cuponId)
+            VALUES (?, ?, ?)
+        `, [id25Bytes(), user.id, coupon.id]);
 
-        return NextResponse.json({ message: `Cupón del ${Math.round(existingCoupon.discountPercentage * 100)}% aplicado`, data: existingCoupon });
+        return NextResponse.json({ message: `Cupón del ${coupon.porcentaje_descuento}% aplicado` });
     } catch (error) {
-        return NextResponse.json({ message: 'Error al aplicar el cupón! ' + error });
+        console.error('Error al aplicar el cupón:', error);
+        return NextResponse.json({ message: 'Error al aplicar el cupón! ' + error.message });
     }
 }
 
 export async function GET() {
     try {
-        await connectDB();
+        const { user } = await getServerSession(authOptions);
 
-        const dataUser = await getServerSession(authOptions);
+        // CONSULTA CRUCE DE TABLA
+        const [results] = await sql.query(`
+            SELECT Cupon.*, Cupon_Usado.id AS cuponUsadoId
+            FROM Cupon_Usado
+            LEFT JOIN Cupon ON Cupon.id = Cupon_Usado.cuponId
+            WHERE Cupon_Usado.usuarioId = ? AND Cupon_Usado.usado = 0
+        `, [user.id]);
 
-        const verifyingCoupon = await UsedCoupons.findOne({ userId: dataUser.user._id, used: false });
-
-        if (!verifyingCoupon) {
+        if (results.length === 0) {
             return NextResponse.json(null);
         }
 
-        const coupon = await Coupons.findOne({ _id: verifyingCoupon.couponId });
+        const coupon = results[0];
 
-        if (coupon) {
-            if (new Date(coupon.expirationDate) < new Date()) {
-                await UsedCoupons.findOneAndUpdate(verifyingCoupon._id, { used: true });
-                return NextResponse.json(null);
-            }
-        } else {
-            await UsedCoupons.findOneAndUpdate(verifyingCoupon._id, { used: true });
+        if (!coupon || new Date(coupon.fecha_caducidad) < new Date()) {
+            await sql.query(`
+                UPDATE Cupon_Usado
+                SET usado = 1
+                WHERE id = ?
+            `, [coupon.cuponUsadoId]);
+
             return NextResponse.json(null);
         }
 
         return NextResponse.json(coupon);
     } catch (error) {
-        return NextResponse.json({ message: 'Error al consultar los cupón! ' + error });
+        console.error('Error al consultar los cupones:', error);
+        return NextResponse.json({ message: `Error al consultar los cupones: ${error.message}` });
     }
 }

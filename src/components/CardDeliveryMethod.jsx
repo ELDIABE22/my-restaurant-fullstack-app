@@ -1,3 +1,7 @@
+import { useState } from "react";
+import { useOrder } from "@/context/OrderContext";
+import { useSession } from "next-auth/react";
+import { deliveryMethodSchema } from "@/utils/validationSchema";
 import {
   Card,
   CardHeader,
@@ -9,17 +13,14 @@ import {
   Button,
   Input,
 } from "@nextui-org/react";
-import TruckIcon from "./icons/TruckIcon";
-import { useState } from "react";
-import { useOrder } from "@/context/OrderContext";
-import { deliveryMethodSchema } from "@/utils/validationSchema";
-import { useSession } from "next-auth/react";
 import toast from "react-hot-toast";
 import axios from "axios";
+import TruckIcon from "./icons/TruckIcon";
 
 const CardDeliveryMethod = ({
   shippingCost,
   getDistance,
+  loadingDeliveryMethod,
   setLoadingDeliveryMethod,
 }) => {
   const { cart, setCart, saveCartProductsToLocalStorage } = useOrder();
@@ -95,10 +96,9 @@ const CardDeliveryMethod = ({
                 method: value,
               },
               costOfShipping: shippingCost,
-              discount:
-                Math.round(
-                  (prevOrder.productCost * couponData.discountPercentage) / 100
-                ) * 100,
+              discount: Math.round(
+                (prevOrder.productCost * couponData.porcentaje_descuento) / 100
+              ),
               tip:
                 prevOrder.tip ||
                 Math.round((prevOrder.productCost * 0.2) / 100) * 100,
@@ -106,10 +106,9 @@ const CardDeliveryMethod = ({
                 prevOrder.productCost + shippingCost + prevOrder.tip ||
                 Math.round((prevOrder.productCost * 0.2) / 100) * 100 -
                   Math.round(
-                    (prevOrder.productCost * couponData.discountPercentage) /
+                    (prevOrder.productCost * couponData.porcentaje_descuento) /
                       100
-                  ) *
-                    100,
+                  ),
             };
 
             return updateDeliveryMethod;
@@ -175,7 +174,7 @@ const CardDeliveryMethod = ({
   };
 
   return (
-    <Card className="w-full">
+    <Card className="w-full" isDisabled={loadingDeliveryMethod}>
       <CardHeader className="flex gap-3">
         <TruckIcon />
         <p className="text-xl font-semibold">Método de entrega</p>

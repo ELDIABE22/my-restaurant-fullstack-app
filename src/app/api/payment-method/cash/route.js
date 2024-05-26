@@ -1,125 +1,138 @@
-import { connectDB } from "@/database/mongodb";
-import { getServerSession } from "next-auth";
-import { NextResponse } from "next/server";
+import { sql } from "@/database/mysql";
+import { id25Bytes } from "@/utils/uuidv4";
 import { authOptions } from "../../auth/[...nextauth]/route";
-import Order from "@/models/Order";
-import UnRegisteredOrderSchema from "@/models/UnregisteredOrder";
-import UsedCoupons from "@/models/UsedCoupons";
+import { NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
+
 
 export async function POST(req) {
     try {
-        await connectDB();
-
         const data = await req.json();
-
         const userSession = await getServerSession(authOptions);
 
-        let newOrder;
-
-        if (userSession) {
-            if (data.deliveryMethod.method === "Domicilio") {
-                // Validar datos del pedido
-                if (!data.info.name) {
-                    return NextResponse.json({ message: "Se requiere un nombre" });
-                } else if (!data.info.phone) {
-                    return NextResponse.json({ message: "Se requiere un número de teléfono" });
-                } else if (!data.info.address) {
-                    return NextResponse.json({ message: "Se requiere una dirección de envío" });
-                } else if (!data.info.city) {
-                    return NextResponse.json({ message: "Se requiere una ciudad de envío" });
-                }
-
-                newOrder = await new Order({
-                    user: userSession.user._id,
-                    products: data.products,
-                    paymentMethod: data.paymentMethod,
-                    deliveryMethod: {
-                        method: data.deliveryMethod.method,
-                    },
-                    shippingAddress: data.info.address,
-                    city: data.info.city,
-                    additionalDetails: data.info.additionalDetail,
-                    totalAmount: data.total,
-                    paid: true,
-                })
-
-                if (data.discount) {
-                    await UsedCoupons.findOneAndUpdate({ userId: newOrder.user, used: false }, { used: true });
-                }
-            } else {
-                // Validar datos del pedido
-                if (!data.info.name) {
-                    return NextResponse.json({ message: "Se requiere un nombre" });
-                } else if (!data.deliveryMethod.tableNum) {
-                    return NextResponse.json({ message: "Se requiere el numero de mesa" });
-                }
-
-                const validatedTableNum = await Order.find();
-
-                // Verificar si algún pedido ya está ocupando la mesa
-                const mesaOcupada = validatedTableNum.some(order => {
-                    return order.status === "Pendiente" && order.paid && order.deliveryMethod.tableNumber == data.deliveryMethod.tableNum;
-                });
-
-                if (mesaOcupada) {
-                    return NextResponse.json({ message: `La mesa ${data.deliveryMethod.tableNum} está ocupada!` });
-                }
-
-                newOrder = await new Order({
-                    user: userSession.user._id,
-                    products: data.products,
-                    paymentMethod: data.paymentMethod,
-                    deliveryMethod: {
-                        method: data.deliveryMethod.method,
-                        tableNumber: data.deliveryMethod.tableNum,
-                    },
-                    totalAmount: data.total,
-                    paid: true,
-                })
-            }
-        } else {
-            // Validar datos del pedido
-            if (!data.info.name) {
-                return NextResponse.json({ message: "Se requiere un nombre" });
-            } else if (!data.deliveryMethod.tableNum) {
-                return NextResponse.json({ message: "Se requiere el numero de mesa" });
-            }
-
-            const validatedTableNum = await Order.find();
-
-            // Verificar si algún pedido ya está ocupando la mesa
-            const mesaOcupada = validatedTableNum.some(order => {
-                return order.status === "Pendiente" && order.paid && order.deliveryMethod.tableNumber == data.deliveryMethod.tableNum;
-            });
-
-            if (mesaOcupada) {
-                return NextResponse.json({ message: `La mesa ${data.deliveryMethod.tableNum} está ocupada!` });
-            }
-
-            const UnRegisteredOrder = await new UnRegisteredOrderSchema({ name: data.info.name });
-
-            const userSave = await UnRegisteredOrder.save();
-
-            newOrder = await new Order({
-                user: userSave._id,
-                products: data.products,
-                paymentMethod: data.paymentMethod,
-                deliveryMethod: {
-                    method: data.deliveryMethod.method,
-                    tableNumber: data.deliveryMethod.tableNum,
-                },
-                totalAmount: data.total,
-                paid: true,
-            })
-
-            await UnRegisteredOrderSchema.findByIdAndUpdate({ _id: UnRegisteredOrder._id }, { order: newOrder._id });
+        if (!userSession) {
+            return NextResponse.json({ message: "Sesión no encontrada" });
         }
 
-        await newOrder.save();
+        const { deliveryMethod, info, paymentMethod, total, products, discount } = data;
 
-        return NextResponse.json({ message: "Pedido realizado" });
+        if (deliveryMethod.method === "Domicilio") {
+            // Validar datos del pedido
+            if (!info.name) return NextResponse.json({ message: "Se requiere un nombre" });
+            if (!info.phone) return NextResponse.json({ message: "Se requiere un número de teléfono" });
+            if (!info.address) return NextResponse.json({ message: "Se requiere una dirección de envío" });
+            if (!info.city) return NextResponse.json({ message: "Se requiere una ciudad de envío" });
 
+            const orderId = id25Bytes();
+            const orderValues = [orderId, userSession.user.id, paymentMethod, deliveryMethod.method, info.address, info.city, info.additionalDetail, total, 1];
+
+            try {
+                // Iniciar transacción
+                await sql.beginTransaction();
+
+                // Insertar en Orden
+                await sql.query(`
+                    INSERT INTO Orden (
+                        id, usuarioId, metodo_pago, metodo_entrega, direccion_envio, ciudad_envio, detalles_adicionales, total, pagado
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                `, orderValues);
+
+                // Insertar en Orden_Plato y Orden_Plato_Adicional
+                for (const product of products) {
+                    const orderPlatoId = id25Bytes();
+                    await sql.query(`
+                        INSERT INTO Orden_Plato (
+                            id, ordenId, nombre, cantidad
+                        ) VALUES (?, ?, ?, ?)
+                    `, [orderPlatoId, orderId, product.nombre, product.cantidad]);
+
+                    if (product.additions && product.additions.length > 0) {
+                        for (const addition of product.additions) {
+                            await sql.query(`
+                                INSERT INTO Orden_Plato_Adicional (
+                                    id, orden_platoId, nombre, cantidad
+                                ) VALUES (?, ?, ?, ?)
+                            `, [id25Bytes(), orderPlatoId, addition.nombre, addition.cantidad]);
+                        }
+                    }
+                }
+
+                if (discount) {
+                    await sql.query(`
+                        UPDATE Cupon_Usado
+                        SET usado = 1
+                        WHERE usuarioId = ? AND usado = 0
+                    `, [userSession.user.id]);
+                }
+
+                // Confirmar transacción
+                await sql.commit();
+                return NextResponse.json({ message: "Pedido realizado" });
+            } catch (error) {
+                await sql.rollback();
+                console.error('Error durante la transacción:', error);
+                return NextResponse.json({ message: 'Error durante la transacción', error });
+            }
+        } else {
+            // Validar datos del pedido para método de entrega en mesa
+            if (!info.name) return NextResponse.json({ message: "Se requiere un nombre" });
+            if (!deliveryMethod.tableNum) return NextResponse.json({ message: "Se requiere el número de mesa" });
+
+            try {
+                const [validatedTableNum] = await sql.query(`
+                    SELECT * 
+                    FROM Orden
+                    WHERE estado = 'Pendiente' AND pagado = 1 AND numero_mesa = ?
+                `, [deliveryMethod.tableNum]);
+
+                if (validatedTableNum.length > 0) {
+                    return NextResponse.json({ message: `La mesa ${deliveryMethod.tableNum} está ocupada!` });
+                }
+
+                const orderId = id25Bytes();
+                const orderValues = [orderId, userSession.user.id, paymentMethod, deliveryMethod.method, deliveryMethod.tableNum, total, 1];
+
+                // Iniciar transacción
+                await sql.beginTransaction();
+
+                // Insertar en Orden
+                await sql.query(`
+                    INSERT INTO Orden (
+                        id, usuarioId, metodo_pago, metodo_entrega, numero_mesa, total, pagado
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?)
+                `, orderValues);
+
+                // Insertar en Orden_Plato y Orden_Plato_Adicional
+                for (const product of products) {
+                    const orderPlatoId = id25Bytes();
+                    await sql.query(`
+                        INSERT INTO Orden_Plato (
+                            id, ordenId, nombre, cantidad
+                        ) VALUES (?, ?, ?, ?)
+                    `, [orderPlatoId, orderId, product.nombre, product.cantidad]);
+
+                    if (product.additions && product.additions.length > 0) {
+                        for (const addition of product.additions) {
+                            await sql.query(`
+                                INSERT INTO Orden_Plato_Adicional (
+                                    id, orden_platoId, nombre, cantidad
+                                ) VALUES (?, ?, ?, ?)
+                            `, [id25Bytes(), orderPlatoId, addition.nombre, addition.cantidad]);
+                        }
+                    }
+                }
+
+                // Confirmar transacción
+                await sql.commit();
+                return NextResponse.json({ message: "Pedido realizado" });
+            } catch (error) {
+                await sql.rollback();
+                console.error('Error durante la transacción:', error);
+                return NextResponse.json({ message: 'Error durante la transacción', error });
+            }
+        }
     } catch (error) {
-        return NextResponse.json({ message: 'Error al seleccionar el pago por efectivo! ' + error });
+        console.error('Error en la solicitud:', error);
+        return NextResponse.json({ message: 'Error en la solicitud', error });
     }
 }

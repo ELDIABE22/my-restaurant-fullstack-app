@@ -1,12 +1,14 @@
-import Category from "@/models/Category";
-import { connectDB } from "@/database/mongodb";
+import { sql } from "@/database/mysql";
 import { NextResponse } from "next/server";
 
 export async function GET(res, { params }) {
     try {
-        await connectDB();
-
-        const category = await Category.findOne({ _id: params.id })
+        // CONSULTA SENCILLA
+        const [category] = await sql.query(`
+            SELECT *
+            FROM Categoria
+            WHERE id = ?
+        `, [params.id])
 
         return NextResponse.json(category);
     } catch (error) {

@@ -1,8 +1,12 @@
 "use client";
 
+import axios from "axios";
 import CardOrder from "@/components/CardOrder";
-import { ChevronDownIcon } from "@/components/icons/ChevronDownIcon";
+import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 import { capitalize } from "@/utils/capitalize";
+import { ChevronDownIcon } from "@/components/icons/ChevronDownIcon";
+import { useEffect, useMemo, useState } from "react";
 import {
   Button,
   Divider,
@@ -13,10 +17,6 @@ import {
   Pagination,
   Spinner,
 } from "@nextui-org/react";
-import { useSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
-import axios from "axios";
 
 const OrderPage = () => {
   const { data: session, status } = useSession();
@@ -48,7 +48,7 @@ const OrderPage = () => {
       Array.from(statusFilter).length !== statusOptions.length
     ) {
       filteredUsers = filteredUsers.filter((or) =>
-        Array.from(statusFilter).includes(or.status)
+        Array.from(statusFilter).includes(or.estado)
       );
     }
 
@@ -69,12 +69,59 @@ const OrderPage = () => {
   // Función para consultar las ordenes del usuario registrado
   async function getOrders() {
     try {
-      const res = await axios.get("/api/order");
+      const res = await axios.get(`/api/order/${session?.user.id}`);
       const { data } = res;
-      const orderData = data.filter(
-        (order) => order.user === session?.user._id && order.paid === true
-      );
-      setOrders(orderData);
+
+      const orders = [];
+      const ordersMap = new Map();
+
+      data.forEach((row) => {
+        if (!ordersMap.has(row.ordenId)) {
+          const order = {
+            id: row.ordenId,
+            usuarioId: row.usuarioId,
+            metodo_pago: row.metodo_pago,
+            metodo_entrega: row.metodo_entrega,
+            direccion_envio: row.direccion_envio,
+            ciudad_envio: row.ciudad_envio,
+            detalles_adicionales: row.detalles_adicionales,
+            numero_mesa: row.numero_mesa,
+            total: row.total,
+            pagado: row.pagado,
+            estado: row.estado,
+            fecha_creado: row.fecha_creado,
+            fecha_actualizado: row.fecha_actualizado,
+            platos: [],
+          };
+          orders.push(order);
+          ordersMap.set(row.ordenId, order);
+        }
+
+        const order = ordersMap.get(row.ordenId);
+
+        if (row.ordenPlatoId) {
+          let plato = order.platos.find((p) => p.id === row.ordenPlatoId);
+          if (!plato) {
+            plato = {
+              id: row.ordenPlatoId,
+              nombre: row.platoNombre,
+              cantidad: row.platoCantidad,
+              adicionales: [],
+            };
+            order.platos.push(plato);
+          }
+
+          if (row.adicionalId) {
+            plato.adicionales.push({
+              id: row.adicionalId,
+              nombre: row.adicionalNombre,
+              cantidad: row.adicionalCantidad,
+            });
+          }
+        }
+      });
+
+      setOrders(orders);
       setLoadingOrderData(false);
     } catch (error) {
       console.log(error.message);
@@ -149,7 +196,9 @@ const OrderPage = () => {
           <Divider />
           <div className="flex gap-5 flex-wrap justify-center">
             {items.length > 0 ? (
-              items.map((or) => <CardOrder key={or._id} order={or} />)
+              items.map((or) => (
+                <CardOrder key={or.id} order={or} getOrders={getOrders} />
+              ))
             ) : (
               <p className="font-semibold text-lg">No tienes pedidos...</p>
             )}

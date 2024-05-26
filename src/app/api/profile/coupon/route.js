@@ -1,26 +1,33 @@
+import { sql } from "@/database/mysql";
 import Coupons from "@/models/Coupons";
 import { connectDB } from "@/database/mongodb";
 import { NextResponse } from "next/server";
+import { id25Bytes } from "@/utils/uuidv4";
 
 export async function POST(req) {
     try {
-        await connectDB();
-
         const { code, discountPercentage, expirationDate } = await req.json();
 
-        const uppercaseName = code.toUpperCase();
+        const uppercaseCode = code.toUpperCase();
 
-        const coupon = await Coupons.findOne({ code: uppercaseName });
+        // CONSULTA SENCILLA
+        const [coupon] = await sql.query(`
+            SELECT * FROM Cupon
+            WHERE codigo = ?
+        `, [uppercaseCode]);
 
-        if (coupon) return NextResponse.json({ message: "El cúpon ya existe!" });
+        if (coupon.length > 0) return NextResponse.json({ message: "El cúpon ya existe!" });
 
         const formattedExpirationDate = expirationDate.split('T')[0];
 
-        const discountPercentageDecimal = discountPercentage / 100;
+        const values = [id25Bytes(), uppercaseCode, discountPercentage, formattedExpirationDate];
 
-        const newCoupon = new Coupons({ code: uppercaseName, discountPercentage: discountPercentageDecimal, expirationDate: formattedExpirationDate });
-
-        await newCoupon.save();
+        await sql.query(`
+            INSERT INTO Cupon (
+                id, codigo, porcentaje_descuento, fecha_caducidad	
+            )
+            VALUES (?,?,?,?)
+        `, values)
 
         return NextResponse.json({ message: "Cúpon creado" });
     } catch (error) {
@@ -30,9 +37,10 @@ export async function POST(req) {
 
 export async function GET() {
     try {
-        await connectDB();
-
-        const coupons = await Coupons.find();
+        // CONSULTA SENCILLA
+        const [coupons] = await sql.query(`
+            SELECT * FROM Cupon
+        `);
 
         return NextResponse.json(coupons);
     } catch (error) {
@@ -42,13 +50,15 @@ export async function GET() {
 
 export async function DELETE(req) {
     try {
-        await connectDB();
-
         const url = new URL(req.url);
 
-        const _id = url.searchParams.get('_id')
+        const id = url.searchParams.get('id')
 
-        await Coupons.findByIdAndDelete({ _id });
+        await sql.query(`
+            DELETE 
+            FROM Cupon
+            WHERE id = ?
+        `, [id])
 
         return NextResponse.json({ message: 'Cúpon eliminado' });
     } catch (error) {

@@ -37,24 +37,24 @@ const ModalUpdateOrderStatus = ({
                 <Breadcrumbs variant="bordered">
                   <BreadcrumbItem
                     color="warning"
-                    isCurrent={order.status === "Pendiente"}
-                    isDisabled={order.status !== "Pendiente"}
+                    isCurrent={order.estado === "Pendiente"}
+                    isDisabled={order.estado !== "Pendiente"}
                   >
                     Pendiente
                   </BreadcrumbItem>
-                  {order.deliveryMethod.method === "Domicilio" && (
+                  {order.metodo_entrega === "Domicilio" && (
                     <BreadcrumbItem
                       color="primary"
-                      isCurrent={order.status === "En camino"}
-                      isDisabled={order.status !== "En camino"}
+                      isCurrent={order.estado === "En camino"}
+                      isDisabled={order.estado !== "En camino"}
                     >
                       En Camino
                     </BreadcrumbItem>
                   )}
                   <BreadcrumbItem
                     color="success"
-                    isCurrent={order.status === "Entregado"}
-                    isDisabled={order.status !== "Entregado"}
+                    isCurrent={order.estado === "Entregado"}
+                    isDisabled={order.estado !== "Entregado"}
                   >
                     Entregado
                   </BreadcrumbItem>
@@ -70,11 +70,7 @@ const ModalUpdateOrderStatus = ({
                 color="success"
                 variant="ghost"
                 onPress={() =>
-                  handleUpdate(
-                    order._id,
-                    order.status,
-                    order.deliveryMethod.method
-                  )
+                  handleUpdate(order.id, order.estado, order.metodo_entrega)
                 }
               >
                 Confirmar

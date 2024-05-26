@@ -18,8 +18,13 @@ const AccordionMenuItem = ({
   error,
   setError,
   handleOpenModalDelete,
+  deleteEvent,
+  updateItem,
+  savingItem,
 }) => {
-  const typeSelect = ["Caja", "Botón"];
+  const typeSelect = ["Sin valor", "Valor"];
+
+  const allKeysDisabled = savingItem || updateItem || deleteEvent;
 
   // función para agregar elemento (INPUT: name, typeSelect y price)
   function addItems(boxIndex) {
@@ -28,12 +33,12 @@ const AccordionMenuItem = ({
         if (index === boxIndex) {
           return {
             ...item,
-            data: [
-              ...item.data,
+            dataMenuItem: [
+              ...item.dataMenuItem,
               {
-                name: "",
-                price: "",
-                typeSelect: "",
+                nombre: "",
+                precio: "",
+                tipo: "Sin valor",
               },
             ],
           };
@@ -46,22 +51,22 @@ const AccordionMenuItem = ({
 
   // función para editar elementos
   function editItems(e, index, boxIndex, prop) {
-    if (prop === "typeSelect") {
+    if (prop === "tipo") {
       let newValue;
 
       if (e === null) {
         newValue = "";
       } else {
-        newValue = e;
+        newValue = e === "1" ? "Valor" : "Sin valor";
       }
 
       setBoxItem((prevItems) => {
         const newItems = [...prevItems];
-        if (newValue === "0" || newValue === "") {
-          newItems[boxIndex].data[index]["price"] = "";
-          newItems[boxIndex].data[index][prop] = newValue;
+        if (newValue === "Sin valor" || newValue === "") {
+          newItems[boxIndex].dataMenuItem[index]["precio"] = "";
+          newItems[boxIndex].dataMenuItem[index][prop] = newValue;
         } else {
-          newItems[boxIndex].data[index][prop] = newValue;
+          newItems[boxIndex].dataMenuItem[index][prop] = newValue;
         }
         return newItems;
       });
@@ -70,7 +75,7 @@ const AccordionMenuItem = ({
 
       setBoxItem((prevItems) => {
         const newItems = [...prevItems];
-        newItems[boxIndex].data[index][prop] = newValue;
+        newItems[boxIndex].dataMenuItem[index][prop] = newValue;
         return newItems;
       });
     }
@@ -83,7 +88,9 @@ const AccordionMenuItem = ({
         if (index === boxIndex) {
           return {
             ...item,
-            data: item.data.filter((v, subIndex) => subIndex !== indexToRemove),
+            dataMenuItem: item.dataMenuItem.filter(
+              (v, subIndex) => subIndex !== indexToRemove
+            ),
           };
         } else {
           return item;
@@ -103,7 +110,7 @@ const AccordionMenuItem = ({
 
   // función para verificar si existe un error en la caja de elementos
   function hasError(errors, boxIndex, index, prop) {
-    if (prop === "price") {
+    if (prop === "precio") {
       return errors?.some(
         (error) =>
           error.path[0] === "itemBox" &&
@@ -125,7 +132,7 @@ const AccordionMenuItem = ({
 
   // función para obtener mensaje de error de la caja de elementos
   function findErrorMessage(errors, boxIndex, index, prop) {
-    if (prop === "name") {
+    if (prop === "nombre") {
       return errors?.find(
         (error) =>
           error.path[0] === "itemBox" &&
@@ -134,7 +141,7 @@ const AccordionMenuItem = ({
           error.path[3] === index &&
           error.path[4] === prop
       )?.message.boxDataName;
-    } else if (prop === "price") {
+    } else if (prop === "precio") {
       return errors?.find(
         (error) =>
           error.path.length === 4 &&
@@ -143,7 +150,7 @@ const AccordionMenuItem = ({
           error.path[2] === "data" &&
           error.path[3] === index
       )?.message.boxDataPrice;
-    } else if (prop === "typeSelect") {
+    } else if (prop === "tipo") {
       return errors?.find(
         (error) =>
           error.path[0] === "itemBox" &&
@@ -158,6 +165,7 @@ const AccordionMenuItem = ({
   return (
     <>
       <Accordion
+        disabledKeys={allKeysDisabled ? ["0", "1", "2", "3", "4"] : []}
         selectionMode="multiple"
         variant="bordered"
         itemClasses={{
@@ -165,10 +173,14 @@ const AccordionMenuItem = ({
           indicator: "text-orange-peel",
         }}
       >
-        <AccordionItem key={boxIndex} aria-label={box.name} title={box.name}>
+        <AccordionItem
+          key={boxIndex}
+          aria-label={box.nombre}
+          title={box.nombre}
+        >
           <div className="flex flex-col gap-3">
-            {box.data.length > 0 &&
-              box.data.map((data, index) => (
+            {box.dataMenuItem.length > 0 &&
+              box.dataMenuItem.map((data, index) => (
                 <div
                   key={index}
                   className="flex items-center gap-2 max-w-[460px]"
@@ -180,50 +192,50 @@ const AccordionMenuItem = ({
                       color="warning"
                       variant="bordered"
                       autoComplete="off"
-                      value={data.name}
-                      onChange={(e) => editItems(e, index, boxIndex, "name")}
-                      isInvalid={hasError(error, boxIndex, index, "name")}
+                      value={data.nombre}
+                      onChange={(e) => editItems(e, index, boxIndex, "nombre")}
+                      isInvalid={hasError(error, boxIndex, index, "nombre")}
                       errorMessage={findErrorMessage(
                         error,
                         boxIndex,
                         index,
-                        "name"
+                        "nombre"
                       )}
                     />
-                    {data.typeSelect === "1" ? (
+                    {data.tipo === "Valor" && (
                       <Input
                         type="number"
                         label="Precio"
                         color="warning"
                         variant="bordered"
                         autoComplete="off"
-                        value={data.price}
-                        onChange={(e) => editItems(e, index, boxIndex, "price")}
-                        isInvalid={hasError(error, boxIndex, index, "price")}
+                        value={data.precio}
+                        onChange={(e) =>
+                          editItems(e, index, boxIndex, "precio")
+                        }
+                        isInvalid={hasError(error, boxIndex, index, "precio")}
                         errorMessage={findErrorMessage(
                           error,
                           boxIndex,
                           index,
-                          "price"
+                          "precio"
                         )}
                       />
-                    ) : (
-                      ""
                     )}
                     <Autocomplete
                       label="Seleccionar selector"
                       color="warning"
                       variant="bordered"
-                      selectedKey={data.typeSelect}
+                      selectedKey={data.tipo === "Valor" ? "1" : "0"}
                       onSelectionChange={(e) =>
-                        editItems(e, index, boxIndex, "typeSelect")
+                        editItems(e, index, boxIndex, "tipo")
                       }
-                      isInvalid={hasError(error, boxIndex, index, "typeSelect")}
+                      isInvalid={hasError(error, boxIndex, index, "tipo")}
                       errorMessage={findErrorMessage(
                         error,
                         boxIndex,
                         index,
-                        "typeSelect"
+                        "tipo"
                       )}
                     >
                       {typeSelect.map((select, subIndex) => (

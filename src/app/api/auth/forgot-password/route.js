@@ -1,25 +1,39 @@
-import { connectDB } from "@/database/mongodb";
+import { sql } from '@/database/mysql';
 import { randomBytes } from 'crypto';
-import { NextResponse } from "next/server";
-import User from "@/models/User";
 import { transporter } from "@/utils/nodemailer";
+import { NextResponse } from "next/server";
 
 export async function POST(req) {
-    const { correo } = await req.json();
     try {
-        await connectDB();
+        const { correo } = await req.json();
 
-        const user = await User.findOne({ correo });
+        const [user] = await sql.query(`
+            SELECT *
+            FROM Usuario
+            WHERE correo = ?
+        `, [correo])
 
-        if (!user) {
+        if (user.length === 0) {
             return NextResponse.json({ message: 'El correo no existe.' });
         }
 
         const token = randomBytes(20).toString('hex');
-        const expires = Date.now() + 3600000;
 
-        user.resetPasswordToken = token;
-        user.resetPasswordExpires = expires;
+        const now = Date.now();
+
+        const timezoneDifference = 5 * 60 * 60 * 1000;
+
+        const adjustedTimestamp = now + timezoneDifference;
+
+        const expirationTimestamp = adjustedTimestamp + 60 * 60 * 1000;
+
+        const expirationDate = new Date(expirationTimestamp);
+
+        await sql.query(`
+            UPDATE Usuario
+            SET resetPasswordToken = ?, resetPasswordExpires = ?
+            WHERE id = ?
+        `, [token, expirationDate, user[0].id]);
 
         const resetPasswordLink = `${process.env.NEXTAUTH_URL}/auth/forgot-password/${token}`;
 
@@ -43,8 +57,6 @@ export async function POST(req) {
         };
 
         await transporter.sendMail(mailOptions);
-
-        await user.save();
 
         return NextResponse.json({ message: "Se ha enviado un correo para restablecer tu contraseña." });
 

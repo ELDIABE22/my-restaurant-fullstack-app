@@ -34,7 +34,7 @@ export const profileSchema = z.object({
 })
 
 export const orderDataSchema = z.object({
-    nombreCompleto: z.string().min(1, { message: { name: 'Es requerido' } }).refine(value => /^[a-zA-ZñÑ\s]+$/.test(value), { message: { name: 'El nombre no es válido' } }),
+    nombreCompleto: z.string().min(1, { message: { name: 'Es requerido' } }).regex(/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]*$/, { message: { name: 'El nombre no es válido' } }),
     telefono: z.string()
         .refine((value) => value === '' || /^\d{10}$/.test(value), {
             message: { phone: 'Debe tener exactamente 10 dígitos' }
@@ -47,33 +47,33 @@ export const orderDataSchema = z.object({
 })
 
 export const categorySchema = z.object({
-    name: z.string().min(1, { message: { name: 'Es requerido' } }).refine(value => /^[a-zA-ZñÑ\s]+$/.test(value), { message: { name: 'El nombre no es válido' }, }),
+    name: z.string().min(1, { message: { name: 'Es requerido' } }).regex(/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]*$/, { message: { name: 'El nombre no es válido' } }),
 })
 
 const innerDataSchemaZod = z.object({
-    name: z.string().min(1, { message: { boxDataName: 'Es requerido' } }).refine(value => /^[a-zA-ZñÑ\s]+$/.test(value), { message: { boxDataName: 'El nombre no es válido' } }),
-    price: z.string().refine((value) => value === '' || /^[0-9]+$/.test(value), {
+    nombre: z.string().min(1, { message: { boxDataName: 'Es requerido' } }).regex(/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]*$/, { message: { boxDataName: 'El nombre no es válido' } }),
+    precio: z.string().refine((value) => value === '' || /^[0-9]+$/.test(value), {
         message: { boxDataPrice: 'El precio no es válido' }
     }).optional(),
-    typeSelect: z.string().min(1, { message: { typeSelect: 'Es requerido' } }),
+    tipo: z.string().min(1, { message: { typeSelect: 'Es requerido' } }),
 }).refine(data => {
-    if (data.typeSelect === '0' || data.typeSelect === '') {
+    if (data.tipo === 'Sin valor' || data.tipo === '') {
         return true;
     }
-    return data.price && data.price.length > 0;
+    return data.precio && data.precio.length > 0;
 }, {
     message: { boxDataPrice: 'Es requerido' }
 });
 
 export const boxSchemaZod = z.object({
-    name: z.string().min(1, { message: { boxName: 'Es requerido' } }).refine(value => /^[a-zA-ZñÑ\s]+$/.test(value), { message: { boxName: 'El nombre no es válido' } }),
-    maxLength: z.string().min(1, { message: { maxLength: 'Es requerido' } }),
-    description: z.string().optional(),
-    data: z.array(innerDataSchemaZod).nonempty({ message: { data: 'Se requiere al menos un elemento en la caja' } }).optional(),
+    nombre: z.string().min(1, { message: { boxName: 'Es requerido' } }).regex(/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]*$/, { message: { boxName: 'El nombre no es válido' } }),
+    cantidad_maxima: z.string().min(1, { message: { maxLength: 'Es requerido' } }),
+    descripcion: z.string().optional(),
+    dataMenuItem: z.array(innerDataSchemaZod).nonempty({ message: { data: 'Se requiere al menos un elemento en la caja' } }).optional(),
 });
 
 export const menuItemSchema = z.object({
-    name: z.string().min(1, { message: { name: 'Es requerido' } }).refine(value => /^[a-zA-ZñÑ\s]+$/.test(value), { message: { name: 'El nombre no es válido' } }),
+    name: z.string().min(1, { message: { name: 'Es requerido' } }).regex(/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]*$/, { message: { name: 'El nombre no es válido' } }),
     description: z.string().min(1, { message: { description: 'Es requerido' } }),
     price: z.string().min(1, { message: { price: 'Es requerido' } }).refine((value) => value === '' || /^[0-9]+$/.test(value), {
         message: { price: 'No debe contener letras' }

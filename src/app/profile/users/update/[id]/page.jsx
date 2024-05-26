@@ -33,6 +33,7 @@ const UserUpdatePage = ({ params }) => {
         nombreCompleto,
         telefono,
         ciudad,
+        direccion,
       });
 
       setError(null);
@@ -69,7 +70,7 @@ const UserUpdatePage = ({ params }) => {
 
   useEffect(() => {
     if (status === "authenticated") {
-      if (session?.user.admin) {
+      if (session?.user.admin === 1) {
         fetch(`/api/profile/users/update/${params.id}`).then((res) => {
           res.json().then((data) => {
             setNombreCompleto(data.nombreCompleto);
@@ -102,6 +103,7 @@ const UserUpdatePage = ({ params }) => {
           className="flex flex-col lg:w-9/12 gap-4 p-3"
         >
           <Input
+            isDisabled={updatingInfo}
             type="text"
             label="Nombre Completo"
             color="warning"
@@ -114,6 +116,7 @@ const UserUpdatePage = ({ params }) => {
             errorMessage={error?.find((error) => error.name)?.name}
           />
           <Input
+            isDisabled={updatingInfo}
             type="email"
             label="Email"
             color="warning"
@@ -121,9 +124,9 @@ const UserUpdatePage = ({ params }) => {
             autoComplete="off"
             value={correo}
             onValueChange={setCorreo}
-            isDisabled
           />
           <Input
+            isDisabled={updatingInfo}
             type="number"
             label="Teléfono"
             color="warning"
@@ -137,6 +140,7 @@ const UserUpdatePage = ({ params }) => {
           />
           <div className="flex gap-3">
             <Input
+              isDisabled={updatingInfo}
               type="text"
               label="Ciudad"
               color="warning"
@@ -149,6 +153,7 @@ const UserUpdatePage = ({ params }) => {
               errorMessage={error?.find((error) => error.city)?.city}
             />
             <Input
+              isDisabled={updatingInfo}
               type="text"
               label="Dirección"
               color="warning"
@@ -161,6 +166,7 @@ const UserUpdatePage = ({ params }) => {
           </div>
           {session?.user.admin && (
             <Checkbox
+              isDisabled={updatingInfo}
               defaultSelected={admin}
               color="warning"
               isSelected={admin}

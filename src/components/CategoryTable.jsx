@@ -1,3 +1,6 @@
+import { EditIcon } from "./icons/EditIcon";
+import { useState } from "react";
+import { DeleteIcon } from "./icons/DeleteIcon";
 import {
   Table,
   TableHeader,
@@ -8,12 +11,9 @@ import {
   Spinner,
   useDisclosure,
 } from "@nextui-org/react";
-import { EditIcon } from "./icons/EditIcon";
-import { DeleteIcon } from "./icons/DeleteIcon";
 import axios from "axios";
 import toast from "react-hot-toast";
 import ModalConfirmDeleteCategory from "./ModalConfirmDeleteCategory";
-import { useState } from "react";
 
 const CategoryTable = ({
   categorys,
@@ -27,9 +27,9 @@ const CategoryTable = ({
 
   const { isOpen, onOpen, onClose, onOpenChange } = useDisclosure();
 
-  const handleDelete = async (_id) => {
+  const handleDelete = async (id) => {
     const promise = new Promise(async (resolve, reject) => {
-      const res = await axios.delete(`/api/category?_id=${_id}`);
+      const res = await axios.delete(`/api/category?id=${id}`);
 
       const { message } = res.data;
 
@@ -66,14 +66,14 @@ const CategoryTable = ({
         <TableBody emptyContent={"No hay categorías."}>
           {categorys?.length > 0 &&
             categorys.map((cat) => (
-              <TableRow key={cat._id}>
-                <TableCell>{cat.name}</TableCell>
+              <TableRow key={cat.id}>
+                <TableCell>{cat.nombre}</TableCell>
                 <TableCell className="flex justify-center">
                   <div className="relative flex items-center gap-2">
                     <span
                       onClick={() => {
                         setEditedCategory(cat);
-                        setName(cat.name);
+                        setName(cat.nombre);
                         setError(null);
                       }}
                       className="text-lg text-default-400 cursor-pointer active:opacity-50"
@@ -83,7 +83,7 @@ const CategoryTable = ({
                     <span
                       onClick={() => {
                         onOpen();
-                        setIdDelete(cat._id);
+                        setIdDelete(cat.id);
                         setError(null);
                       }}
                       className="text-lg text-danger cursor-pointer active:opacity-50"

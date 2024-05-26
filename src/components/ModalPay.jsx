@@ -1,3 +1,6 @@
+import { useState } from "react";
+import { useOrder } from "@/context/OrderContext";
+import { useRouter } from "next/navigation";
 import {
   Divider,
   Image,
@@ -10,12 +13,9 @@ import {
   ModalFooter,
   Button,
 } from "@nextui-org/react";
-import CheckmarkIcon from "./icons/CheckmarkIcon";
-import { useState } from "react";
-import { useOrder } from "@/context/OrderContext";
 import axios from "axios";
 import toast from "react-hot-toast";
-import { useRouter } from "next/navigation";
+import CheckmarkIcon from "./icons/CheckmarkIcon";
 
 const ModalPay = ({ isOpen, onOpenChange }) => {
   const { cart, setCart, saveCartProductsToLocalStorage } = useOrder();
@@ -24,9 +24,13 @@ const ModalPay = ({ isOpen, onOpenChange }) => {
     cart.paymentMethod || null
   );
 
+  const [paying, setPaying] = useState(false);
+
   const router = useRouter();
 
-  async function handlePay(onClose) {
+  const handlePay = async (onClose) => {
+    setPaying(true);
+
     try {
       if (paymentMethod === "Tarjeta") {
         const promise = new Promise(async (resolve, reject) => {
@@ -38,6 +42,7 @@ const ModalPay = ({ isOpen, onOpenChange }) => {
             resolve(res.data.url);
           } else {
             reject(new Error(message));
+            setPaying(false);
           }
         });
 
@@ -62,6 +67,7 @@ const ModalPay = ({ isOpen, onOpenChange }) => {
             resolve(message);
           } else {
             reject(new Error(message));
+            setPaying(false);
           }
         });
 
@@ -98,9 +104,7 @@ const ModalPay = ({ isOpen, onOpenChange }) => {
                 tip: 0,
                 total: 0,
               };
-
               saveCartProductsToLocalStorage(initialCartOrder);
-
               return initialCartOrder;
             });
           }, 1000);
@@ -110,8 +114,9 @@ const ModalPay = ({ isOpen, onOpenChange }) => {
       onClose();
     } catch (error) {
       console.log("Error al seleccionar el método de pago" + error.message);
+      setPaying(false);
     }
-  }
+  };
 
   const handleToggle = (value) => {
     setPaymentMethod(value);
@@ -139,6 +144,7 @@ const ModalPay = ({ isOpen, onOpenChange }) => {
             <Divider />
             <ModalBody>
               <RadioGroup
+                isDisabled={paying}
                 color="warning"
                 value={paymentMethod}
                 onValueChange={(value) => handleToggle(value)}
@@ -183,10 +189,19 @@ const ModalPay = ({ isOpen, onOpenChange }) => {
               <>
                 <Divider />
                 <ModalFooter>
-                  <Button color="danger" variant="flat" onPress={onClose}>
+                  <Button
+                    color="danger"
+                    variant="flat"
+                    isDisabled={paying}
+                    onPress={onClose}
+                  >
                     Cancelar
                   </Button>
-                  <Button color="warning" onPress={() => handlePay(onClose)}>
+                  <Button
+                    color="warning"
+                    isDisabled={paying}
+                    onPress={() => handlePay(onClose)}
+                  >
                     Confirmar
                   </Button>
                 </ModalFooter>

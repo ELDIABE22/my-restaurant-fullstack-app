@@ -14,9 +14,10 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 export const storage = getStorage(app);
 
-export async function uploadFile(file) {
+export async function uploadFile(file, folderName) {
     try {
-        const storageRef = ref(storage, uuidv4());
+        const folderPath = folderName.endsWith('/') ? folderName.slice(0, -1) : folderName;
+        const storageRef = ref(storage, `${folderPath}/${uuidv4()}`);
         const data = await uploadBytes(storageRef, file);
         const url = await getDownloadURL(storageRef);
         return {
@@ -28,11 +29,12 @@ export async function uploadFile(file) {
     }
 }
 
-export async function deleteFile(imageId) {
+export async function deleteFile(imageUrl) {
     try {
-        const fileRef = ref(storage, imageId);
-        await deleteObject(fileRef);
+        const storageRef = ref(storage, imageUrl);
+
+        await deleteObject(storageRef);
     } catch (error) {
-        console.error("Error al eliminar el archivo: ", error);
+        console.error("Error al eliminar la imagen:", error);
     }
 }

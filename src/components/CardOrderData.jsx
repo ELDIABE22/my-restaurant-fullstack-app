@@ -14,7 +14,7 @@ import ModalOrderData from "./ModalOrderData";
 import { useOrder } from "@/context/OrderContext";
 import { useState } from "react";
 
-const CardOrderData = ({ updateCosts }) => {
+const CardOrderData = ({ updateCosts, loadingDeliveryMethod }) => {
   const { cart, setCart, saveCartProductsToLocalStorage } = useOrder();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -61,126 +61,134 @@ const CardOrderData = ({ updateCosts }) => {
           <p className="text-orange-peel">Editar</p>
         </CardHeader>
         <Divider />
-        <CardBody>
-          <div className="flex flex-col gap-2">
-            <p className="font-medium flex justify-between">
-              Nombre:{" "}
-              <span
-                className={
-                  !cart.info?.name
-                    ? "text-small text-red-500"
-                    : "text-small text-default-500"
-                }
-              >
-                {cart.info?.name ? cart.info?.name : "Requerido"}
-              </span>
-            </p>
-            {cart.deliveryMethod.method !== "Restaurante" && (
+        {loadingDeliveryMethod ? (
+          <div className="text-center p-5">
+            <p className="font-semibold text-lg">Cargando...</p>
+          </div>
+        ) : (
+          <>
+            <CardBody>
+              <div className="flex flex-col gap-2">
+                <p className="font-medium flex justify-between">
+                  Nombre:{" "}
+                  <span
+                    className={
+                      !cart.info?.name
+                        ? "text-small text-red-500"
+                        : "text-small text-default-500"
+                    }
+                  >
+                    {cart.info?.name ? cart.info?.name : "Requerido"}
+                  </span>
+                </p>
+                {cart.deliveryMethod.method !== "Restaurante" && (
+                  <>
+                    <p className="font-medium flex justify-between">
+                      Teléfono:{" "}
+                      <span
+                        className={
+                          !cart.info?.phone
+                            ? "text-small text-red-500"
+                            : "text-small text-default-500"
+                        }
+                      >
+                        {cart.info?.phone ? cart.info?.phone : "Requerido"}
+                      </span>
+                    </p>
+                    <p className="font-medium flex justify-between">
+                      Dirección:{" "}
+                      <span
+                        className={
+                          !cart.info?.address
+                            ? "text-small text-red-500"
+                            : "text-small text-default-500"
+                        }
+                      >
+                        {cart.info?.address ? cart.info?.address : "Requerido"}
+                      </span>
+                    </p>
+                    <p className="font-medium flex justify-between">
+                      Ciudad:{" "}
+                      <span
+                        className={
+                          !cart.info?.city
+                            ? "text-small text-red-500"
+                            : "text-small text-default-500"
+                        }
+                      >
+                        {cart.info?.city ? cart.info?.city : "Requerido"}
+                      </span>
+                    </p>
+                  </>
+                )}
+                {cart.deliveryMethod.method === "Restaurante" && (
+                  <p className="font-medium flex justify-between">
+                    Mesa:{" "}
+                    <span
+                      className={
+                        !cart.deliveryMethod?.tableNum
+                          ? "text-small text-red-500"
+                          : "text-small text-default-500"
+                      }
+                    >
+                      {cart.deliveryMethod?.tableNum
+                        ? cart.deliveryMethod?.tableNum
+                        : "Requerido"}
+                    </span>
+                  </p>
+                )}
+              </div>
+            </CardBody>
+            {cart.deliveryMethod?.method !== "Restaurante" && (
               <>
-                <p className="font-medium flex justify-between">
-                  Teléfono:{" "}
-                  <span
-                    className={
-                      !cart.info?.phone
-                        ? "text-small text-red-500"
-                        : "text-small text-default-500"
-                    }
-                  >
-                    {cart.info?.phone ? cart.info?.phone : "Requerido"}
-                  </span>
-                </p>
-                <p className="font-medium flex justify-between">
-                  Dirección:{" "}
-                  <span
-                    className={
-                      !cart.info?.address
-                        ? "text-small text-red-500"
-                        : "text-small text-default-500"
-                    }
-                  >
-                    {cart.info?.address ? cart.info?.address : "Requerido"}
-                  </span>
-                </p>
-                <p className="font-medium flex justify-between">
-                  Ciudad:{" "}
-                  <span
-                    className={
-                      !cart.info?.city
-                        ? "text-small text-red-500"
-                        : "text-small text-default-500"
-                    }
-                  >
-                    {cart.info?.city ? cart.info?.city : "Requerido"}
-                  </span>
-                </p>
+                <Divider />
+                <CardFooter className="px-3 py-2">
+                  <Input
+                    isClearable
+                    type="text"
+                    variant="underlined"
+                    placeholder="Detalles adicionales"
+                    color="warning"
+                    className="p-0"
+                    value={additionalDetail}
+                    onValueChange={(newValue) => {
+                      setAdditionalDetail(newValue);
+                      if (newValue !== cart.info.additionalDetail) {
+                        setSaveAdditionalDetail(true);
+                      } else {
+                        setSaveAdditionalDetail(false);
+                      }
+                    }}
+                  />
+                </CardFooter>
               </>
             )}
-            {cart.deliveryMethod.method === "Restaurante" && (
-              <p className="font-medium flex justify-between">
-                Mesa:{" "}
-                <span
-                  className={
-                    !cart.deliveryMethod?.tableNum
-                      ? "text-small text-red-500"
-                      : "text-small text-default-500"
-                  }
-                >
-                  {cart.deliveryMethod?.tableNum
-                    ? cart.deliveryMethod?.tableNum
-                    : "Requerido"}
-                </span>
-              </p>
-            )}
-          </div>
-        </CardBody>
-        {cart.deliveryMethod?.method !== "Restaurante" && (
-          <>
-            <Divider />
-            <CardFooter className="px-3 py-2">
-              <Input
-                isClearable
-                type="text"
-                variant="underlined"
-                placeholder="Detalles adicionales"
-                color="warning"
-                className="p-0"
-                value={additionalDetail}
-                onValueChange={(newValue) => {
-                  setAdditionalDetail(newValue);
-                  if (newValue !== cart.info.additionalDetail) {
-                    setSaveAdditionalDetail(true);
-                  } else {
-                    setSaveAdditionalDetail(false);
-                  }
-                }}
-              />
-            </CardFooter>
+
+            {cart.deliveryMethod?.method !== "Restaurante" &&
+              saveAdditionalDetail && (
+                <div className="flex gap-3 px-3 py-2 ">
+                  <Button
+                    radius="none"
+                    color="danger"
+                    variant="ghost"
+                    className="w-full"
+                    onPress={cancelSaveAdditionalDetail}
+                  >
+                    Cancelar
+                  </Button>
+                  <Button
+                    radius="none"
+                    color="warning"
+                    variant="ghost"
+                    className="w-full"
+                    onPress={handleSaveAdditionalDetail}
+                  >
+                    Guardar
+                  </Button>
+                </div>
+              )}
           </>
         )}
-
-        {cart.deliveryMethod?.method !== "Restaurante" &&
-          saveAdditionalDetail && (
-            <div className="flex gap-3 px-3 py-2 ">
-              <Button
-                radius="none"
-                color="danger"
-                variant="ghost"
-                className="w-full"
-                onPress={cancelSaveAdditionalDetail}
-              >
-                Cancelar
-              </Button>
-              <Button
-                radius="none"
-                color="warning"
-                variant="ghost"
-                className="w-full"
-                onPress={handleSaveAdditionalDetail}
-              >
-                Guardar
-              </Button>
-            </div>
-          )}
       </Card>
 
       <ModalOrderData

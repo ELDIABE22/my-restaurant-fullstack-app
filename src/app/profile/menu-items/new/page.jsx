@@ -48,7 +48,7 @@ const MenuItemNew = () => {
   const { onOpenChange } = useDisclosure();
 
   // función para crear menu-items
-  async function handleSubmit(e) {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setSavingItem(true);
 
@@ -73,18 +73,17 @@ const MenuItemNew = () => {
 
       const { message } = res.data;
 
-      if (message === "Elemento creado exitosamente") {
+      if (message === "Plato añadido") {
         toast.success(message);
         setError(null);
-        setSavingItem(false);
         router.push("/profile/menu-items");
-      } else if (message) {
-        toast.error(message);
-        setSavingItem(false);
       } else {
-        setSavingItem(false);
+        toast.error(message);
       }
+
+      setSavingItem(false);
     } catch (error) {
+      console.log(error.message);
       const errors = error?.errors?.map((error) => error);
       setError(errors);
 
@@ -94,30 +93,30 @@ const MenuItemNew = () => {
 
       setSavingItem(false);
     }
-  }
+  };
 
   // función para abrir y cerrar ModalMenuItem
-  function handleOpenModal() {
+  const handleOpenModal = () => {
     if (isModalOpen) {
       setIsModalOpen(false);
     } else {
       setIsModalOpen(true);
     }
-  }
+  };
 
   // funciones para abrir y cerrar modal de confirmacion para eliminar menu-items
-  function handleOpenModalDelete(title, funcion, boxIndex, index) {
+  const handleOpenModalDelete = (title, funcion, boxIndex, index) => {
     setIsModalOpenDelete(true);
     setModalData({ title, funcion, boxIndex, index });
-  }
+  };
 
-  function handleCloseModalDelete() {
+  const handleCloseModalDelete = () => {
     setIsModalOpenDelete(false);
-  }
+  };
 
   useEffect(() => {
     if (status === "authenticated") {
-      if (session?.user.admin) {
+      if (session?.user.admin === 1) {
         fetch("/api/category").then((res) => {
           res.json().then((data) => {
             setCategorys(data);
@@ -134,6 +133,7 @@ const MenuItemNew = () => {
   return (
     <div className="flex flex-col justify-center items-center gap-8">
       <Button
+        isDisabled={savingItem}
         className="w-2/4"
         color="warning"
         variant="ghost"
@@ -150,10 +150,12 @@ const MenuItemNew = () => {
           <CardImageMenuItem
             itemImage={itemImage}
             setItemImage={setItemImage}
+            savingItem={savingItem}
           />
         </div>
         <div className="flex flex-col gap-4">
           <Input
+            isDisabled={savingItem}
             type="text"
             label="Nombre del elemento"
             color="warning"
@@ -168,6 +170,7 @@ const MenuItemNew = () => {
             }
           />
           <Textarea
+            isDisabled={savingItem}
             label="Descripción"
             color="warning"
             variant="bordered"
@@ -183,6 +186,7 @@ const MenuItemNew = () => {
           />
           <div className="flex gap-3">
             <Input
+              isDisabled={savingItem}
               type="number"
               label="Precio base"
               color="warning"
@@ -197,6 +201,7 @@ const MenuItemNew = () => {
               }
             />
             <Autocomplete
+              isDisabled={savingItem}
               label="Seleccionar categoría"
               color="warning"
               variant="bordered"
@@ -215,13 +220,13 @@ const MenuItemNew = () => {
             >
               {categorys.length > 0 &&
                 categorys.map((cat) => (
-                  <AutocompleteItem key={cat._id}>{cat.name}</AutocompleteItem>
+                  <AutocompleteItem key={cat.id}>{cat.nombre}</AutocompleteItem>
                 ))}
             </Autocomplete>
           </div>
 
           {boxItem?.length > 0 &&
-            boxItem?.map((box, boxIndex) => (
+            boxItem.map((box, boxIndex) => (
               <AccordionMenuItem
                 key={boxIndex}
                 box={box}
@@ -232,10 +237,12 @@ const MenuItemNew = () => {
                 error={error}
                 setError={setError}
                 handleOpenModalDelete={handleOpenModalDelete}
+                savingItem={savingItem}
               />
             ))}
 
           <Button
+            isDisabled={savingItem}
             type="button"
             color="warning"
             size="lg"

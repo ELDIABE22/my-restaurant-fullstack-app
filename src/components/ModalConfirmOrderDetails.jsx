@@ -25,7 +25,7 @@ const ModalConfirmOrderDetails = ({
         {(onClose) => (
           <>
             <ModalHeader className="flex flex-col gap-1 text-lg text-center">
-              ¿Eliminar pedido?
+              ¿Cancelar pedido?
             </ModalHeader>
             <ModalBody>
               <Button
