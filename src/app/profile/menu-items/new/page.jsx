@@ -48,8 +48,7 @@ const MenuItemNew = () => {
   const { onOpenChange } = useDisclosure();
 
   // función para crear menu-items
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const handleSubmit = async () => {
     setSavingItem(true);
 
     try {
@@ -145,7 +144,7 @@ const MenuItemNew = () => {
         Mostrar todos los elementos del menú
       </Button>
 
-      <form onSubmit={handleSubmit} className="flex gap-4 p-3">
+      <form className="flex gap-4 p-3">
         <div>
           <CardImageMenuItem
             itemImage={itemImage}
@@ -254,11 +253,11 @@ const MenuItemNew = () => {
           </Button>
 
           <Button
-            type="submit"
             color="warning"
             size="lg"
             variant="shadow"
             isLoading={savingItem}
+            onPress={handleSubmit}
           >
             <p className="text-white tracking-widest font-bold hover:scale-110 transform transition-transform duration-[0.2s] ease-in-out">
               {savingItem ? "Guardando..." : "Guardar"}

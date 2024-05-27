@@ -64,7 +64,7 @@ export async function POST(req) {
                                 INSERT INTO Plato_Caja_Dato (
                                     id, cajaId, nombre, precio, tipo
                                 ) VALUES (?, ?, ?, ?, ?)
-                            `, [id25Bytes(), cajaId, item.nombre, item.precio, item.tipo]);
+                            `, [id25Bytes(), cajaId, item.nombre, item.precio || null, item.tipo]);
                         }
                     }
                 }
@@ -217,7 +217,7 @@ export async function PUT(req) {
                         await sql.query(`
                             INSERT INTO Plato_Caja_Dato (id, cajaId, nombre, precio, tipo)
                             VALUES (?, ?, ?, ?, ?)
-                        `, [newItemId, box.id, item.nombre, item.precio, item.tipo]);
+                        `, [newItemId, box.id, item.nombre, item.precio || null, item.tipo]);
                         receivedPlatoCajaDatoIds.push(newItemId);
                     }
                 }

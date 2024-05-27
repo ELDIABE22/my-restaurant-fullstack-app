@@ -17,8 +17,7 @@ const FormLogin = ({ onOpen }) => {
 
   const toggleVisibility = () => setIsVisible(!isVisible);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const handleSubmit = async () => {
     setSesionLoading(true);
     try {
       loginSchema.parse({
@@ -55,7 +54,7 @@ const FormLogin = ({ onOpen }) => {
   };
 
   return (
-    <form onSubmit={handleSubmit}>
+    <form>
       <div className="flex flex-col gap-3 lg:p-7 mb-5 lg:mb-0">
         <div className="flex flex-col w-full mb-6 md:mb-0 gap-4">
           <Input
@@ -117,6 +116,7 @@ const FormLogin = ({ onOpen }) => {
             variant="shadow"
             isLoading={sesionLoading}
             className="text-[15px] w-full"
+            onPress={handleSubmit}
           >
             <p className="text-white w-full tracking-widest font-bold hover:scale-110 transform transition-transform duration-[0.2s] ease-in-out">
               {sesionLoading ? "Ingresando..." : "Ingresar"}

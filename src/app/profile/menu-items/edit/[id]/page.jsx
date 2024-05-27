@@ -51,8 +51,7 @@ const MenuItemEdit = ({ params }) => {
   const router = useRouter();
 
   // función para actualizar menu-items
-  async function handleUpdate(e) {
-    e.preventDefault();
+  const handleUpdate = async () => {
     setUpdateItem(true);
 
     try {
@@ -104,10 +103,10 @@ const MenuItemEdit = ({ params }) => {
 
       setUpdateItem(false);
     }
-  }
+  };
 
   // función para eliminar el menu-items
-  async function handleDelete() {
+  const handleDelete = async () => {
     setDeleteEvent(true);
 
     const formData = new FormData();
@@ -136,26 +135,26 @@ const MenuItemEdit = ({ params }) => {
       success: "Menú de elemento eliminado",
       error: "Error, inténtalo más tarde!",
     });
-  }
+  };
 
   // función para abrir y cerrar ModalMenuItem
-  function handleOpenModal() {
+  const handleOpenModal = () => {
     if (isModalOpen) {
       setIsModalOpen(false);
     } else {
       setIsModalOpen(true);
     }
-  }
+  };
 
   // funciones para abrir y cerrar modal de confirmacion para eliminar menu-items
-  function handleOpenModalDelete(title, funcion, boxIndex, index) {
+  const handleOpenModalDelete = (title, funcion, boxIndex, index) => {
     setIsModalOpenDelete(true);
     setModalData({ title, funcion, boxIndex, index });
-  }
+  };
 
-  function handleCloseModalDelete() {
+  const handleCloseModalDelete = () => {
     setIsModalOpenDelete(false);
-  }
+  };
 
   const getItem = async () => {
     try {
@@ -267,7 +266,7 @@ const MenuItemEdit = ({ params }) => {
       {loading ? (
         <Spinner label="Cargando elementos del menú..." color="warning" />
       ) : (
-        <form className="flex gap-4 p-3" onSubmit={handleUpdate}>
+        <form className="flex gap-4 p-3">
           <div>
             <CardImageMenuItem
               itemImage={itemImage}
@@ -375,12 +374,12 @@ const MenuItemEdit = ({ params }) => {
             </Button>
 
             <Button
-              type="submit"
               color="warning"
               size="lg"
               variant="shadow"
               isLoading={updateItem}
               isDisabled={deleteEvent}
+              onPress={handleUpdate}
             >
               <p className="text-white w-full tracking-widest font-bold hover:scale-110 transform transition-transform duration-[0.2s] ease-in-out">
                 {updateItem ? "Actualizando..." : "Actualizar"}

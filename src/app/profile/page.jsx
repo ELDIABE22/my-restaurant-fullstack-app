@@ -23,8 +23,7 @@ const Profile = () => {
 
   const router = useRouter();
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const handleSubmit = async () => {
     setUpdatingInfo(true);
 
     try {
@@ -82,10 +81,7 @@ const Profile = () => {
       {loadingProfile ? (
         <Spinner label="Cargando Perfil..." color="warning" />
       ) : (
-        <form
-          onSubmit={handleSubmit}
-          className="flex flex-col w-full lg:w-9/12 gap-4 p-3"
-        >
+        <form className="flex flex-col w-full lg:w-9/12 gap-4 p-3">
           <Input
             type="text"
             isDisabled={updatingInfo}
@@ -161,6 +157,7 @@ const Profile = () => {
             size="lg"
             variant="shadow"
             isLoading={updatingInfo}
+            onPress={handleSubmit}
           >
             <p className="text-white w-full tracking-widest font-bold hover:scale-110 transform transition-transform duration-[0.2s] ease-in-out">
               {updatingInfo ? "Guardando..." : "Guardar"}

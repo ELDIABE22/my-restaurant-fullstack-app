@@ -29,7 +29,7 @@ export async function GET(res, { params }) {
             LEFT JOIN 
                 Orden_Plato op ON o.id = op.ordenId
             LEFT JOIN 
-                orden_plato_adicional opa ON op.id = opa.orden_platoId
+                Orden_Plato_Adicional opa ON op.id = opa.orden_platoId
             WHERE 
                 o.usuarioId = ? 
                 AND o.pagado = 1

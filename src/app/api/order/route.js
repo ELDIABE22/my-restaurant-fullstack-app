@@ -3,13 +3,13 @@ import { NextResponse } from "next/server";
 
 export async function PUT(req) {
     try {
-        const { idDelete } = await req.json();
+        const { id } = await req.json();
 
         const [orderDelete] = await sql.query(`
             UPDATE Orden
             SET estado = 'Cancelado'
             WHERE id = ? AND estado = 'Pendiente'
-        `, [idDelete]);
+        `, [id]);
 
         if (orderDelete.affectedRows === 0) {
             return NextResponse.json({ message: "No puedes cancelar el pedido, ya va en camino" });

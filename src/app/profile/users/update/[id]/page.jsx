@@ -24,8 +24,7 @@ const UserUpdatePage = ({ params }) => {
 
   const router = useRouter();
 
-  async function handleUpdate(e) {
-    e.preventDefault();
+  async function handleUpdate() {
     setUpdatingInfo(true);
 
     try {
@@ -98,10 +97,7 @@ const UserUpdatePage = ({ params }) => {
       {loading ? (
         <Spinner label="Cargando información..." color="warning" />
       ) : (
-        <form
-          onSubmit={handleUpdate}
-          className="flex flex-col lg:w-9/12 gap-4 p-3"
-        >
+        <form className="flex flex-col lg:w-9/12 gap-4 p-3">
           <Input
             isDisabled={updatingInfo}
             type="text"
@@ -181,6 +177,7 @@ const UserUpdatePage = ({ params }) => {
             size="lg"
             variant="shadow"
             isLoading={updatingInfo}
+            onPress={handleUpdate}
           >
             <p className="text-white tracking-widest font-bold hover:scale-110 transform transition-transform duration-[0.2s] ease-in-out">
               {updatingInfo ? "Actualizando..." : "Actualizar"}

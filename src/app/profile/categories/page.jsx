@@ -22,8 +22,7 @@ const Categories = () => {
 
   const router = useRouter();
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const handleSubmit = async () => {
     if (editedCategory) {
       setUpdatingCategory(true);
       try {
@@ -114,10 +113,7 @@ const Categories = () => {
         <Spinner color="warning" className="flex justify-center" />
       ) : (
         <div className="flex flex-col justify-center items-center gap-5">
-          <form
-            onSubmit={handleSubmit}
-            className="flex items-center gap-3 min-w-[500px]"
-          >
+          <form className="flex items-center gap-3 min-w-[500px]">
             <Input
               type="text"
               label={
@@ -135,12 +131,12 @@ const Categories = () => {
               errorMessage={error?.find((error) => error.name)?.name}
             />
             <Button
-              type="submit"
               color="warning"
               size="lg"
               variant="ghost"
               radius="none"
               isLoading={creatingCategory}
+              onPress={handleSubmit}
             >
               {editedCategory
                 ? updatingCategory

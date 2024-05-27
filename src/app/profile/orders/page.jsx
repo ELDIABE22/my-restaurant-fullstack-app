@@ -141,10 +141,10 @@ const ProfileOrdersPage = () => {
   };
 
   // Función para cancelar pedido
-  const handleDelete = async (idDelete) => {
+  const handleDelete = async (id) => {
     try {
       const promise = new Promise(async (resolve, reject) => {
-        const res = await axios.put("/api/order", { idDelete });
+        const res = await axios.put("/api/order", { id });
 
         const { message } = res.data;
 

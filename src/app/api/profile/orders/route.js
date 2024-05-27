@@ -31,7 +31,7 @@ export async function GET() {
             LEFT JOIN 
                 Orden_Plato op ON o.id = op.ordenId
             LEFT JOIN 
-                orden_plato_adicional opa ON op.id = opa.orden_platoId
+                Orden_Plato_Adicional opa ON op.id = opa.orden_platoId
             LEFT JOIN
                 Usuario u ON o.usuarioId = u.id
             WHERE 

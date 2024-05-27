@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { usedCouponSchema } from "@/utils/validationSchema";
 import {
   Modal,
@@ -9,7 +10,6 @@ import {
   Input,
 } from "@nextui-org/react";
 import axios from "axios";
-import { useState } from "react";
 import toast from "react-hot-toast";
 
 const ModalCupon = ({ isOpen, onOpenChange, updateCosts }) => {
@@ -17,8 +17,7 @@ const ModalCupon = ({ isOpen, onOpenChange, updateCosts }) => {
   const [error, setError] = useState(null);
 
   // Función para aplicar cupón
-  const handleSubmit = async (e, onClose) => {
-    e.preventDefault();
+  const handleSubmit = async (onClose) => {
     try {
       const validateCoupon = usedCouponSchema.parse({
         couponCode: coupon,
@@ -70,7 +69,7 @@ const ModalCupon = ({ isOpen, onOpenChange, updateCosts }) => {
         {(onClose) => (
           <>
             <ModalHeader>Cupón</ModalHeader>
-            <form onSubmit={(e) => handleSubmit(e, onClose)}>
+            <form>
               <ModalBody>
                 <Input
                   autoFocus
@@ -98,7 +97,7 @@ const ModalCupon = ({ isOpen, onOpenChange, updateCosts }) => {
                 <Button color="danger" variant="flat" onPress={onClose}>
                   Cerrar
                 </Button>
-                <Button color="warning" type="submit">
+                <Button color="warning" onPress={() => handleSubmit(onClose)}>
                   Validar
                 </Button>
               </ModalFooter>

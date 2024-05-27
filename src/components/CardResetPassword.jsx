@@ -29,7 +29,7 @@ const CardResetPassword = ({ params }) => {
 
   const router = useRouter();
 
-  async function handleUpdate() {
+  const handleUpdate = async () => {
     setUpdateNewPasswordLoading(true);
 
     try {
@@ -67,7 +67,7 @@ const CardResetPassword = ({ params }) => {
       setError(errors);
       setUpdateNewPasswordLoading(false);
     }
-  }
+  };
 
   const toggleVisibility = () => setIsVisible(!isVisible);
 
@@ -87,6 +87,7 @@ const CardResetPassword = ({ params }) => {
       <Divider />
       <CardBody className="flex flex-col gap-3">
         <Input
+          isDisabled={updateNewPasswordLoading}
           autoFocus
           type={isVisible ? "text" : "password"}
           label="Nueva contraseña"
@@ -112,6 +113,7 @@ const CardResetPassword = ({ params }) => {
           }
         />
         <Input
+          isDisabled={updateNewPasswordLoading}
           type={isVisible ? "text" : "password"}
           label="Confirmar nueva contraseña"
           color="warning"

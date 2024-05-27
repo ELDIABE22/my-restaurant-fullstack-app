@@ -24,9 +24,8 @@ const CouponsPage = () => {
   const router = useRouter();
 
   // Función para crear un cúpon
-  async function handleSubmit(e) {
+  const handleSubmit = async () => {
     setCreatingCoupon(true);
-    e.preventDefault();
     try {
       const validatedCoupon = couponsSchema.parse({
         code,
@@ -58,10 +57,10 @@ const CouponsPage = () => {
       setError(errors);
       setCreatingCoupon(false);
     }
-  }
+  };
 
   // Función para obtener los cupones de la base de datos
-  async function getCoupons() {
+  const getCoupons = async () => {
     try {
       const res = await axios.get("/api/profile/coupon");
       setCoupons(res.data);
@@ -69,7 +68,7 @@ const CouponsPage = () => {
     } catch (error) {
       console.error("Error al obtener los cupones:", error);
     }
-  }
+  };
 
   // useEffect para ejecutar la función getCoupons();
   useEffect(() => {
@@ -99,12 +98,12 @@ const CouponsPage = () => {
         <Spinner color="warning" className="flex justify-center" />
       ) : (
         <section className="flex gap-5 justify-center items-center">
-          <form onSubmit={handleSubmit} className="flex flex-col gap-3">
+          <form className="flex flex-col gap-3">
             <p className="font-bold text-xl text-center">AGREGAR CÚPON</p>
             <Input
               isDisabled={creatingCoupon}
               type="text"
-              label={"Código del cupón"}
+              label="Código del cupón"
               color="warning"
               variant="bordered"
               radius="none"
@@ -152,12 +151,12 @@ const CouponsPage = () => {
               }
             />
             <Button
-              type="submit"
               color="warning"
               size="lg"
               variant="ghost"
               radius="none"
               isLoading={creatingCoupon}
+              onPress={handleSubmit}
             >
               {creatingCoupon ? "Creando..." : "Crear"}
             </Button>
